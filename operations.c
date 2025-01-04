@@ -1,37 +1,29 @@
 #include <stdio.h>
 
-float sum (float a, float b) {
+float sum_ (float a, float b) {
 	return a + b;
 }
 
-float sub (float a, float b) {
+float sub_ (float a, float b) {
 	return a - b;
 }
 
-float mul (float a, float b) {
+float mul_ (float a, float b) {
 	return a * b;
 }
 
-float div (float a, float b) {
+float div_ (float a, float b) {
 	return a / b;
 }
 
-float sqr (float a) {
+float sqr_ (float a) {
 	return a * a;
 }
 
-float pov (float a, int power) {
+float pow_ (float a, int power) {
 	if (power == 1) {
 		return a;
 	} else {
-		a = a * pov (a, power -1);
+		a = a * pow_ (a, power -1);
 	}
 }
-
-int main (void) {
-	printf("%f\n", pov(5.0, 5.0));
-	return 0;
-}
-
-
-
