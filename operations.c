@@ -16,10 +16,6 @@ float div_ (float a, float b) {
 	return a / b;
 }
 
-float sqr_ (float a) {
-	return a * a;
-}
-
 float pow_ (float a, int power) {
 	if (power == 1) {
 		return a;
