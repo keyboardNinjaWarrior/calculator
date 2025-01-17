@@ -23,10 +23,15 @@ float div_ (float a, float b) {
 }
 
 float pow_ (float a, int power) {
-	if (power == 1) {
+	if (power == 0) {
+		return 1;
+	} else if (power == 1) {
 		return a;
-	} else {
+	} else if (power > 1) {
 		a = a * pow_ (a, power - 1);
+	} else if (power < 1) {
+		a = 1/a;
+		pow_ (a, -power);
 	}
 }
 
@@ -57,6 +62,8 @@ int fact_ (int a) {
 }
 
 int main (void) {
-	printf("%d\n", fact_ (10));
+	float a, b;
+	scanf("%f %f", &a, &b); 
+	printf("%f\n", pow_ (a, b));
 	return 0;
 }
