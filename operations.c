@@ -44,8 +44,7 @@ float pow_ (float a, int power) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
  
 float root_ (float a, int x) {
-	float num = a;
-	float r = 0;
+	float num = a, r = 0;
 	do {
 		r = ( (pow_ (a, x) - num) / (x * pow_ (a, x - 1)) );
 		a = a - r;
@@ -54,16 +53,17 @@ float root_ (float a, int x) {
 }
 
 int fact_ (int a) {
-	if (a == 1) {
+	if (a == 0) {
+		return 1;
+	} else if (a == 1) {
 		return a;
-	} else {
+	} else if (a > 1) {
 		a = a * fact_ (a - 1);
 	}
 }
 
 double bin_ (float a) {
-       double integer = 0;
-       double decimal = 0;
+       double integer = 0, decimal = 0;
        for (int x = (int) a, i = 0; x > 0; x /= 2, i++) {
                integer += (x % 2) * pow_ (10, i);      
        }
@@ -77,9 +77,22 @@ double bin_ (float a) {
        return (integer + decimal);
 }
 
+double sin_ (float x) {
+	int term = 0;
+        double	r = 0, sine = 0;
+	for (int n = 0; (1 / fact_ (term)) > PRECISION; n++) {
+		term = (n * 2) + 1;
+		r = pow_ (-1, n) / fact_ (term);
+		sine += pow_ (x, term) * r;
+		printf("term:\t%d\nr:\t%f\nsine:\t%f\n", term, r, sine); 
+	}
+	return sine;
+
+}
+
 int main (void) {
 	float a;
 	scanf("%f", &a); 
-	printf("%f\n", bin_ (a));
+	printf("%f\n", sin_ (a));
 	return 0;
 }
