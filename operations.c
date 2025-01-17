@@ -1,3 +1,9 @@
+ /* * * * * * * * * * * * * * * * * * * *
+  * Name:	Nadeem Anwar		*
+  * Language:	C			*
+  * Date:	08 January, 2025	*
+  * * * * * * * * * * * * * * * * * * * */
+
 #include <stdio.h>
 
 float sum_ (float a, float b) {
@@ -24,7 +30,7 @@ float pow_ (float a, int power) {
 	}
 }
 
-// This square root is calculated by Babolanion method
+/* This root function is created by Newton-Ralphson method */
 
 /* * * * * *  * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * I wanted to create a recursive function but that would	*
@@ -38,14 +44,19 @@ float root_ (float a, int x) {
 	do {
 		r = ( (pow_ (a, x) - num) / (x * pow_ (a, x - 1)) );
 		a = a - r;
-	//	printf("%f\n", a);
-	
-	} while (r > 0.00001);
-		
+	} while (r > 0.0001f);
 	return a;
 }
 
+int fact_ (int a) {
+	if (a == 1) {
+		return a;
+	} else {
+		a = a * fact_ (a - 1);
+	}
+}
+
 int main (void) {
-	printf("%f\n", root_ (27000, 3));
+	printf("%d\n", fact_ (10));
 	return 0;
 }
