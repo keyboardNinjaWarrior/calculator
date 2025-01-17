@@ -61,9 +61,9 @@ int fact_ (int a) {
 	}
 }
 
-float bin_ (float a) {
-       float integer = 0;
-       float decimal = 0;
+double bin_ (float a) {
+       double integer = 0;
+       double decimal = 0;
        for (int x = (int) a, i = 0; x > 0; x /= 2, i++) {
                integer += (x % 2) * pow_ (10, i);      
        }
