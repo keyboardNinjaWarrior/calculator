@@ -5,6 +5,7 @@
   * * * * * * * * * * * * * * * * * * * */
 
 #include <stdio.h>
+#define	PRECISION	0.0001f
 
 float sum_ (float a, float b) {
 	return a + b;
@@ -30,8 +31,7 @@ float pow_ (float a, int power) {
 	} else if (power > 1) {
 		a = a * pow_ (a, power - 1);
 	} else if (power < 1) {
-		a = 1/a;
-		pow_ (a, -power);
+		pow_ (1/a, -power);
 	}
 }
 
@@ -49,7 +49,7 @@ float root_ (float a, int x) {
 	do {
 		r = ( (pow_ (a, x) - num) / (x * pow_ (a, x - 1)) );
 		a = a - r;
-	} while (r > 0.0001f);
+	} while (r > PRECISION);
 	return a;
 }
 
@@ -69,7 +69,7 @@ double bin_ (float a) {
        }
 
        for (float x = a - (int) a, i = 1; i < 5; i++) {
-               x = x * 2;
+               x *= 2;
                decimal += (int) x * pow_ (10, -i);
                x -= (int) x;
        }
