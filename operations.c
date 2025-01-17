@@ -61,9 +61,25 @@ int fact_ (int a) {
 	}
 }
 
+float bin_ (float a) {
+       float integer = 0;
+       float decimal = 0;
+       for (int x = (int) a, i = 0; x > 0; x /= 2, i++) {
+               integer += (x % 2) * pow_ (10, i);      
+       }
+
+       for (float x = a - (int) a, i = 1; i < 5; i++) {
+               x = x * 2;
+               decimal += (int) x * pow_ (10, -i);
+               x -= (int) x;
+       }
+
+       return (integer + decimal);
+}
+
 int main (void) {
-	float a, b;
-	scanf("%f %f", &a, &b); 
-	printf("%f\n", pow_ (a, b));
+	float a;
+	scanf("%f", &a); 
+	printf("%f\n", bin_ (a));
 	return 0;
 }
