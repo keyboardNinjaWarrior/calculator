@@ -68,10 +68,13 @@ double sin_ (float x) {
 		term = (n * 2) + 1;
 		r = pow_ (-1, n) / fact_ (term);
 		sine += pow_ (x, term) * r;
-		printf("term:\t%d\nr:\t%f\nsine:\t%f\n", term, r, sine); 
 	}
 	return sine;
 
+}
+
+double cos_ (float x) {
+	return root_ ((1 - pow_( sin_ (x) , 2 )) , 2 );
 }
 
 int main (void) {
