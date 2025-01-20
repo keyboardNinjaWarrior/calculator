@@ -86,6 +86,10 @@ double csc_ (float x) {
 	return 1 / sin_ (x);
 }
 
+double sec_ (float x) {
+	return 1 / cos_ (x);
+}
+
 int main (void) {
 	float a;
 	scanf("%f", &a); 
