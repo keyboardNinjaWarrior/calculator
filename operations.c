@@ -78,9 +78,13 @@ double cos_ (float x) {
 	return root_ ((1 - pow_( sin_ (x) , 2 )) , 2 );
 }
 
+double tan_ (float x) {
+	return sin_ (x) / cos_ (x);
+}
+
 int main (void) {
 	float a;
 	scanf("%f", &a); 
-	printf("%f\n", cos_ (a));
+	printf("%f\n", tan_ (a));
 	return 0;
 }
