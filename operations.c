@@ -7,22 +7,6 @@
 #include <stdio.h>
 #define	PRECISION	0.0001f
 
-float sum_ (float a, float b) {
-	return a + b;
-}
-
-float sub_ (float a, float b) {
-	return a - b;
-}
-
-float mul_ (float a, float b) {
-	return a * b;
-}
-
-float div_ (float a, float b) {
-	return a / b;
-}
-
 float pow_ (float a, int power) {
 	if (power == 0) {
 		return 1;
