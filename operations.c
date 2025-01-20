@@ -21,11 +21,9 @@ float pow_ (float a, int power) {
 
 /* This root function is created by Newton-Ralphson method */
 
-/* * * * * *  * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * I wanted to create a recursive function but that would	*
- * require intialization in parameters that C language doesn't	*
- * support. It would become very complicated 			*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
+/* I wanted to create a recursive function but that would
+ * require intialization in parameters that C language doesn't
+ * support. It would become very complicated */  
  
 float root_ (float a, int x) {
 	float num = a, r = 0;
@@ -61,6 +59,9 @@ double bin_ (float a) {
        return (integer + decimal);
 }
 
+/* The trignomatric fuctions take input in radians.
+ * They are also acurate upto 3 decimal places.*/
+
 double sin_ (float x) {
 	int term = 0;
         double	r = 0, sine = 0;
@@ -80,6 +81,6 @@ double cos_ (float x) {
 int main (void) {
 	float a;
 	scanf("%f", &a); 
-	printf("%f\n", sin_ (a));
+	printf("%f\n", cos_ (a));
 	return 0;
 }
