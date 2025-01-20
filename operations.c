@@ -82,9 +82,13 @@ double tan_ (float x) {
 	return sin_ (x) / cos_ (x);
 }
 
+double csc_ (float x) {
+	return 1 / sin_ (x);
+}
+
 int main (void) {
 	float a;
 	scanf("%f", &a); 
-	printf("%f\n", tan_ (a));
+	printf("%f\n", csc_ (a));
 	return 0;
 }
