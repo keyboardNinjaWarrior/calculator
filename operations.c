@@ -90,6 +90,10 @@ double sec_ (float x) {
 	return 1 / cos_ (x);
 }
 
+double cot_ (float x) {
+	return cos_ (x) / sin_ (x);
+}
+
 int main (void) {
 	float a;
 	scanf("%f", &a); 
