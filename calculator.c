@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <math.h>
-
-struct operations {
-	int* operand1;
-	char operation;
-	int* operand2;
-}
+#include "header.h"
 
 int main (char argc, char *argv[]) {
 	// checks for tags
@@ -13,8 +6,8 @@ int main (char argc, char *argv[]) {
 		// check for tag type
 		
 		// tag = expression
-		if (arg[1][1] == 'e') {
-			
+		if (argv[1][1] == 'e') {
+			expression (argv[2]);
 		}
 
 	} else {

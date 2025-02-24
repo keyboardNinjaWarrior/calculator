@@ -1,3 +1,4 @@
 #include <stdio.h>
+#include <math.h>
 
-void exp (char* expression);
+void expression (char*);
