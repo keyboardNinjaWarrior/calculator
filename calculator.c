@@ -1,11 +1,12 @@
 #include "header.h"
 
 int main (char argc, char *argv[]) {
-	// checks for tags
+	
+         /* * * * * * * * * * * * * * * *
+	 * '-':	tags intitialized	*
+	 * 'e': expression		*
+	 * * * * * * * * * * * * * * * */
 	if (argv[1][0] == '-') {
-		// check for tag type
-		
-		// tag = expression
 		if (argv[1][1] == 'e') {
 			expression (argv[2]);
 		}
