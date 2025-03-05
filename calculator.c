@@ -20,7 +20,7 @@ int main (char argc, char *argv[]) {
 }
 
 char *remove_spaces (char *exp) {
-	int end = 0; position = 0;
+	int end = 0, position = 0;
 	for (; exp[end] != '\0'; end++)
 		;
 
@@ -29,6 +29,10 @@ char *remove_spaces (char *exp) {
 			exp[position++] = exp[i];
 		}
 	}
-	
+
+	for (; position != end; ++position) {
+		exp[position] = '\0';
+	}
+
 	return exp;
 }
