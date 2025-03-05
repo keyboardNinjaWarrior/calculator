@@ -1,4 +1,6 @@
-#include "header.h"
+#include "lib.h"
+
+char *remove_spaces (char *);
 
 int main (char argc, char *argv[]) {
 	// checks for tags
@@ -7,7 +9,7 @@ int main (char argc, char *argv[]) {
 		
 		// tag = expression
 		if (argv[1][1] == 'e') {
-			expression (argv[2]);
+			printf ("%s\n", remove_spaces (argv[2]));
 		}
 
 	} else {
@@ -15,4 +17,18 @@ int main (char argc, char *argv[]) {
 	}
 
 	return 0;
+}
+
+char *remove_spaces (char *exp) {
+	int end = 0; position = 0;
+	for (; exp[end] != '\0'; end++)
+		;
+
+	for (int i = 0; exp[i] != '\0'; i++) {
+		if (exp[i] != ' ') {
+			exp[position++] = exp[i];
+		}
+	}
+	
+	return exp;
 }
