@@ -1,19 +1,26 @@
 #include "lib.h"
 
+typedef struct exptree {
+	bool is_end;
+
+	union {
+		struct {
+			struct exptree *lvalue;
+			char operation;
+			struct exptree *rvalue;
+		} parent;
+
+		struct {
+			long double operand;
+		} end;	
+	} node;
+} exptree;
+
 void expression (char *exp) {
-	typedef struct exptree {
-		bool is_end;
+	exptree *tree = malloc (sizeof (exptree));
+}
 
-		union {
-			struct {
-				struct exptree *lvalue;
-				char operation;
-				struct exptree *rvalue;
-			} parent;
+long double parse_operand (char *exp) {
 
-			struct {
-				long double operand;
-			} end;	
-		} node;
-	} exptree;
+
 }
