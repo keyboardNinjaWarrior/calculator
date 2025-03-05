@@ -9,7 +9,7 @@ int main (char argc, char *argv[]) {
 		
 		// tag = expression
 		if (argv[1][1] == 'e') {
-			expression (remove_spaces (argv[2]));
+			printf ("%s\n", remove_spaces (argv[2]));
 		}
 
 	} else {
