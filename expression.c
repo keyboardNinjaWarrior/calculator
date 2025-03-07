@@ -26,7 +26,7 @@ void expression (char *exp) {
 long double parse_operand (char *exp, int start) {	
 	long double operand = 0;
 	if (exp[start] >= '0' && exp[start] <= '9') {
-		for(; exp[start] >= '9' || exp[start] <= '0'; start++) {
+		for(; exp[start] >= '0' && exp[start] <= '9'; start++) {
 			operand *= 10;
 			operand += exp[start] - '0';
 		}
