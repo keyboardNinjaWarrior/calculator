@@ -2,7 +2,7 @@
 
 long double *parse_digits (char *, unsigned int *);
 signed short int parse_sign (char *, unsigned int *);
-bool check_operator (char *,unsigned int *);
+unsigned short int check_operator (char *,unsigned int *);
 bool check_digits (char *, unsigned int *);
 struct exptree *obtain_operation (char *, int *);
 struct exptree *obtain_operand (char *, int *);
@@ -28,8 +28,9 @@ typedef struct exptree {
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *num1 = obtain_operand(exp, &exp_index);
-	printf("%llf\n", *num1->node.child.operand);
+	exptree *num1 = obtain_operand (exp, &exp_index);
+	exptree *func1 = obtain_operation (exp, &exp_index);
+	printf("%d\n", func1->node.parent.operation);
 }
 
 struct exptree *obtain_operand (char *exp, int *index) {	
@@ -121,12 +122,18 @@ signed short int parse_sign (char *exp, unsigned int *start) {
  * 			+ - / *							*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-bool check_operator (char *exp, unsigned int *index) {
+unsigned short int check_operator (char *exp, unsigned int *index) {
 	switch (exp[*index]) {
-		case '+': case '-': case '/': case '*':
-			return true;
+		case '+':
+			return 1;
+		case '-':
+			return 2;
+		case '/':
+			return 3;	
+		case '*':
+			return 4;
 		default:
-			return false;
+			return 0;
 	}
 }
 
