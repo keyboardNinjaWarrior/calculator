@@ -69,6 +69,11 @@ long double *parse_digits (char *exp, int start) {
 	return operand;
 }
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * parse sign:		checks for + and negative signs through recursion 	*	
+ * 			and then returns +1 and -1 respectively.		*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 int parse_sign (char *exp, int *start) {
 	if (!(exp[*start] == '-' || exp[*start] == '+')) {
 		return 1;
@@ -77,6 +82,7 @@ int parse_sign (char *exp, int *start) {
 		return -1 * parse_sign(exp, start);
 		
 	} else {
+		++(*start);
 		return 1 * parse_sign(exp, start);
 	}
 }
