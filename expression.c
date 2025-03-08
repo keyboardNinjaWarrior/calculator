@@ -1,6 +1,7 @@
 #include "lib.h"
 
 long double *parse_digits (char *, int);
+int parse_sign (char *, int);
 
 typedef struct exptree {
 	bool is_end;
@@ -35,6 +36,7 @@ void expression (char *exp) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 long double *parse_digits (char *exp, int start) {
+	int sign = parse_sign (exp, &start);
 	long double *operand;
 	if (!(operand = malloc (sizeof (long double)))) {
 		exit (3);
@@ -65,4 +67,15 @@ long double *parse_digits (char *exp, int start) {
 	}
 
 	return operand;
+}
+
+int parse_sign (char *exp, int *start) {
+	if (exp[*start] != '+' && exp[*start] != '-') {
+		return 1;
+	} else if (exp[*start] == '+') {
+		return 1 * parse_sign(exp, ++(*start));
+		
+	} else {
+		return -1 * parse_sign(exp, ++(*start));
+	}
 }
