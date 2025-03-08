@@ -1,7 +1,9 @@
 #include "lib.h"
 
-long double *parse_digits (char *, int);
-int parse_sign (char *, int *);
+long double *parse_digits (char *, unsigned int);
+signed short int parse_sign (char *, unsigned int *);
+bool check_operator (char *,unsigned int);
+bool check_operand (char *, unsigned int);
 
 typedef struct exptree {
 	bool is_end;
@@ -9,7 +11,7 @@ typedef struct exptree {
 	union {
 		struct {
 			struct exptree *lvalue;
-			char operation;
+			unsigned short int operation;
 			struct exptree *rvalue;
 		} parent;
 
@@ -35,15 +37,15 @@ void expression (char *exp) {
  * 			scientific notation through recursion.			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-long double *parse_digits (char *exp, int start) {
-	int sign = parse_sign (exp, &start);
+long double *parse_digits (char *exp, unsigned int start) {
+	signed short int sign = parse_sign (exp, &start);
 	long double *operand;
 	if (!(operand = malloc (sizeof (long double)))) {
 		exit (3);
 	}
 	*operand = 0;
 	bool decimal = false;
-	int decimal_part = 0;
+	unsigned int decimal_part = 0;
 
 	for (; (exp[start] >= '0' && exp[start] <= '9') || exp[start] == '.'; start++) {
 		if (exp[start] != '.') {
@@ -74,7 +76,7 @@ long double *parse_digits (char *exp, int start) {
  * 			and then returns +1 and -1 respectively.		*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int parse_sign (char *exp, int *start) {
+signed short int parse_sign (char *exp, unsigned int *start) {
 	if (!(exp[*start] == '-' || exp[*start] == '+')) {
 		return 1;
 	} else if (exp[*start] == '-') {
@@ -85,4 +87,32 @@ int parse_sign (char *exp, int *start) {
 		++(*start);
 		return 1 * parse_sign(exp, start);
 	}
+}
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * check operator		returns true and false if it a given operation:	*
+ * 				+ - / *						*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
+bool check_operator (char *exp, unsigned int index) {
+	switch (exp[index]) {
+		case '+': case '-': case '/': case '*':
+			return true;
+		default:
+			return false;
+	}
+}
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * check operand		returns true and false if the expression	*
+ * 				is starting with '+', '-', '.' or is 		*
+ * 				between 0 and 9 chars.				*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
+bool check_operand (char *exp, unsigned int index) {
+	return (exp[index] >= '0' && exp[index] <= '9') || 	\
+		exp[index] == '.' || 				\
+		exp[index] == '+' || 				\
+		exp[index] == '-' ? 				\
+		return true : return false;
 }
