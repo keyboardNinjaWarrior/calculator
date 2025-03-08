@@ -29,7 +29,7 @@ typedef struct exptree {
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *num1 = obtain_operand(exp, &exp_index);
-	printf("%llf\n", num1->node.child.operand);
+	printf("%llf\n", *num1->node.child.above);
 }
 
 struct exptree *obtain_operand (char *exp, int *index) {	
@@ -37,7 +37,6 @@ struct exptree *obtain_operand (char *exp, int *index) {
 	if (check_digits (exp, index)) {
 		operand->is_child = true;
 		operand->node.child.operand = parse_digits (exp, index);
-		printf ("%llf\n", *(operand->node.child.operand));
 	} else {
 		exit (3);
 	}
