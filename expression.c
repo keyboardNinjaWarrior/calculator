@@ -70,7 +70,7 @@ long double *parse_digits (char *exp, int start) {
 }
 
 int parse_sign (char *exp, int *start) {
-	if (exp[*start] != '+' && exp[*start] != '-') {
+	if (exp[*start] != '+' || exp[*start] != '-') {
 		return 1;
 	} else if (exp[*start] == '+') {
 		++(*start);
