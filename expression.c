@@ -1,6 +1,6 @@
 #include "lib.h"
 
-long double *parse_operand (char *, int);
+long double *parse_digits (char *, int);
 
 typedef struct exptree {
 	bool is_end;
@@ -20,10 +20,10 @@ typedef struct exptree {
 
 void expression (char *exp) {
 //	exptree *tree = malloc (sizeof (exptree));
-	printf("%llf", *parse_operand (exp, 0));
+	printf("%llf", *parse_digits (exp, 0));
 }
 
-long double *parse_operand (char *exp, int start) {	
+long double *parse_digits (char *exp, int start) {	
 	long double *operand;
 	if (!(operand = malloc (sizeof (long double)))) {
 		exit (3);
