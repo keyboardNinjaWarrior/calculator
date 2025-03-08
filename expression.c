@@ -1,7 +1,7 @@
 #include "lib.h"
 
 long double *parse_digits (char *, int);
-int parse_sign (char *, int);
+int parse_sign (char *, int *);
 
 typedef struct exptree {
 	bool is_end;
@@ -73,9 +73,10 @@ int parse_sign (char *exp, int *start) {
 	if (exp[*start] != '+' && exp[*start] != '-') {
 		return 1;
 	} else if (exp[*start] == '+') {
-		return 1 * parse_sign(exp, ++(*start));
+		++(*start);
+		return 1 * parse_sign(exp, start);
 		
 	} else {
-		return -1 * parse_sign(exp, ++(*start));
+		return -1 * parse_sign(exp, start);
 	}
 }
