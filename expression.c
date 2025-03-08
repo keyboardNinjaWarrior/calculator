@@ -59,7 +59,7 @@ long double *parse_digits (char *exp, int start) {
 		}
 	}
 	
-	*operand /= powl (10.0, (long double) decimal_part);
+	*operand = sign * (*operand / powl (10.0, (long double) decimal_part));
 	
 	switch (exp[start]) {
 		case 'e': case 'E':
@@ -70,13 +70,13 @@ long double *parse_digits (char *exp, int start) {
 }
 
 int parse_sign (char *exp, int *start) {
-	if (exp[*start] != '+' || exp[*start] != '-') {
+	if (!(exp[*start] == '-' || exp[*start] == '+')) {
 		return 1;
-	} else if (exp[*start] == '+') {
+	} else if (exp[*start] == '-') {
 		++(*start);
-		return 1 * parse_sign(exp, start);
+		return -1 * parse_sign(exp, start);
 		
 	} else {
-		return -1 * parse_sign(exp, start);
+		return 1 * parse_sign(exp, start);
 	}
 }
