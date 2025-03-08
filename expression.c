@@ -29,7 +29,7 @@ typedef struct exptree {
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *num1 = obtain_operand(exp, &exp_index);
-	printf("%llf\n", *num1->node.child.above);
+	printf("%llf\n", *num1->node.child.operand);
 }
 
 struct exptree *obtain_operand (char *exp, int *index) {	
