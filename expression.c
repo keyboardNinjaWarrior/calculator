@@ -20,7 +20,7 @@ typedef struct exptree {
 
 void expression (char *exp) {
 //	exptree *tree = malloc (sizeof (exptree));
-	printf("%llf", *parse_digits (exp, 0));
+	printf ("%llf\n", *parse_digits (exp, 0));
 }
 
 long double *parse_digits (char *exp, int start) {	
@@ -28,11 +28,30 @@ long double *parse_digits (char *exp, int start) {
 	if (!(operand = malloc (sizeof (long double)))) {
 		exit (3);
 	}
-
 	*operand = 0;
-	for(; exp[start] >= '0' && exp[start] <= '9'; start++) {
-		*operand *= 10;
-		*operand += exp[start] - '0';
+	bool decimal = false;
+	int decimal_part = 0;
+
+	for (; (exp[start] >= '0' && exp[start] <= '9') || exp[start] == '.'; start++) {
+		if (exp[start] != '.') {
+			*operand *= 10;
+			*operand += exp[start] - '0';
+			if (decimal) {
+				++decimal_part;
+			}
+		} else if (!decimal) {
+			decimal = true;
+		} else {
+			exit (4);
+		}
 	}
+	
+	*operand /= powl (10.0, (long double) decimal_part);
+	
+	switch (exp[start]) {
+		case 'e': case 'E':
+			*operand *= powl (10.0, *parse_digits (exp, ++start)); 
+	}
+
 	return operand;
 }

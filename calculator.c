@@ -42,3 +42,8 @@ char *remove_spaces (char *exp) {
 
 	return exp;
 }
+
+// Errors
+// 1		Missing tag initilization
+// 3		Memory allocation failled
+// 4		Too many decimal points
