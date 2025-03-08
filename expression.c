@@ -29,8 +29,9 @@ typedef struct exptree {
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *num1 = obtain_operand (exp, &exp_index);
-	exptree *func1 = obtain_operation (exp, &exp_index);
-	printf("%d\n", func1->node.parent.operation);
+	exptree *op1 = obtain_operation (exp, &exp_index);
+	
+	printf("%Lf\n", num1->node.child.operand);
 }
 
 struct exptree *obtain_operand (char *exp, int *index) {	
