@@ -28,10 +28,17 @@ typedef struct exptree {
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *num1 = obtain_operand (exp, &exp_index);
-	exptree *op1 = obtain_operation (exp, &exp_index);
+	exptree *lop, *rop, *oper;
+
+	lop	= obtain_operand (exp, &exp_index);
+	if (exp[exp_index] != '\0') {
+		oper = obtain_operation (exp, &exp_index);
+		rop = obtain_operand (exp, &exp_index);
+	}
 	
-	printf("%Lf\n", num1->node.child.operand);
+	printf("%.9Lf\n", *(lop->node.child.operand));
+	printf("%d\n", oper->node.parent.operation);
+	printf("%.9Lf\n", *(rop->node.child.operand));
 }
 
 struct exptree *obtain_operand (char *exp, int *index) {	
@@ -126,12 +133,16 @@ signed short int parse_sign (char *exp, unsigned int *start) {
 unsigned short int check_operator (char *exp, unsigned int *index) {
 	switch (exp[*index]) {
 		case '+':
+			*index = *index + 1;
 			return 1;
 		case '-':
+			*index = *index + 1;
 			return 2;
 		case '/':
+			*index = *index + 1;
 			return 3;	
 		case '*':
+			*index = *index + 1;
 			return 4;
 		default:
 			return 0;
