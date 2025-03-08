@@ -23,7 +23,18 @@ void expression (char *exp) {
 	printf ("%llf\n", *parse_digits (exp, 0));
 }
 
-long double *parse_digits (char *exp, int start) {	
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * parse digits:	It takes an expression and starting point. Then it 	*
+ * 			allocates memory for storing the long double. It loops 	*
+ * 			over the characters and adds them to the variable and 	*
+ * 			multiplies it with ten. Meanwhile it looks for the 	*
+ * 			decimal and if its there, it starts adding the digits 	*
+ * 			after the decimal. At the end it divides the number 	*
+ * 			with it. It also evaluates expression given in 		*
+ * 			scientific notation through recursion.			*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
+long double *parse_digits (char *exp, int start) {
 	long double *operand;
 	if (!(operand = malloc (sizeof (long double)))) {
 		exit (3);
@@ -50,7 +61,7 @@ long double *parse_digits (char *exp, int start) {
 	
 	switch (exp[start]) {
 		case 'e': case 'E':
-			*operand *= powl (10.0, *parse_digits (exp, ++start)); 
+			*operand *= powl (10.0, *parse_digits (exp, ++start));
 	}
 
 	return operand;
