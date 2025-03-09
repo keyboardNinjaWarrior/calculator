@@ -27,22 +27,29 @@ typedef struct exptree {
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *lop, *rop, *oper;
+	exptree *lop, *rop, *tree[3];
 
 	lop	= obtain_operand (exp, &exp_index);
-	if (exp[exp_index] != '\0') {
-		oper = obtain_operation (exp, &exp_index);	
+	for (unsigned short int i = 0; exp[exp_index] != '\0'; i = 1) {
+		tree[i] = obtain_operation (exp, &exp_index);	
 		rop = obtain_operand (exp, &exp_index);
-		if (lop->above == NULL) {
-			lop->above = oper;
-			oper->node.parent.lvalue = lop;
-			oper->node.parent.rvalue = rop;
+		
+		tree[i]->node.parent.rvalue = rop;
+		rop->above = tree[i];
+
+		if (i == 1) {
+			if (tree[i]->node.parent.precedence > tree[i - 1]->node.parent.precedence) {
+				tree[i]->node.parent.lvalue = tree[i - 1]->node.parent.rvalue;
+				tree[i - 1]->node.parent.rvalue->above = tree[i];
+				tree[i - 1]->node.parent.rvalue = tree[i];
+				tree[i]->above = tree[i - 1];
+				tree[i + 1] = tree[i - 1];
+				tree[i - 1] = tree[i];
+			}
+
 		}
 	}
 	
-	printf("%.9Lf\n", *(lop->node.child.operand));
-	printf("%d\n", oper->node.parent.operation);
-	printf("%.9Lf\n", *(rop->node.child.operand));
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
