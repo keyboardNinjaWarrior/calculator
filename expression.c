@@ -26,15 +26,6 @@ typedef struct exptree {
 
 } exptree;
 
-void print_node(exptree *tree) {
-	if (tree->is_child) {
-		printf ("%Lf ", *tree->node.child.operand);
-	} else {
-		print_node(tree->node.parent.lvalue);
-		print_node(tree->node.parent.rvalue);
-	}
-}
-
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *tree = expression_tree (exp, &exp_index);		
@@ -60,23 +51,20 @@ struct exptree *expression_tree (char *exp, int *index) {
 			tree[i]->above = tree[i - 1];
 			
 		} else {
-			while ((tree[i - 1]->above) && tree[i]->node.parent.precedence <= tree[i - 1]->above->node.parent.precedence) {
+			while ((tree[i - 1]->above) && tree[i]->node.parent.precedence <= tree[i - 1]->above->node.parent.precedence)
 				tree[i - 1] = tree[i - 1]->above;
-			}
 			// adjusting the tree
 			tree[i]->node.parent.lvalue = tree[i - 1];
 			tree[i]->above = tree[i - 1]->above;
-			if (tree[i - 1]->above) {
+			if (tree[i - 1]->above)
 				tree[i - 1]->above->node.parent.rvalue = tree[i];
-			}
 			tree[i - 1]->above = tree[i];
 		}
 		
 		// adjusting the tree array
 		tree[i + 1] = tree[i - 1];
-		while (tree[i + 1]->above) {
+		while (tree[i + 1]->above)
 			tree[i + 1] = tree[i + 1]->above;
-		}
 	
 		tree[i - 1] = tree[i];
 		
