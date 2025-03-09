@@ -26,17 +26,38 @@ typedef struct exptree {
 
 } exptree;
 
+void print_node (exptree *tree) {
+	if (tree->is_child) {
+		printf ("%Lf\n", *tree->node.child.operand);
+	} else {
+		print_node (tree->node.parent.lvalue);
+		print_node (tree->node.parent.rvalue);
+	}
+}
+
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *tree = expression_tree (exp, &exp_index);		
 	print_node (tree);
 }
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * expression tree:	This is the core of function of this program as it generates 	*
+ * 			the tree. Two pair of nodes having an operation and right 	*
+ * 			operand is created and stored in node array of three elements. 	*
+ * 			The first contain initial, second current and third points 	*
+ * 			to the top most element. The insertion is done comparing the 	*
+ * 			precedences on the nodes with each other. The lower precedences *	
+ * 			nodes are inserted above and higher precedences nodes are 	*
+ * 			inserted bellow. It's better to understand to insertion through *	
+ * 			diagram.							*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
 struct exptree *expression_tree (char *exp, int *index) {	
 	exptree *lop = obtain_operand (exp, index), *rop, *tree[3];
 
 	for (unsigned short int i = 0; exp[*index] != '\0'; i = 1) {
-	tree[i] = obtain_operation (exp, index);	
+	tree[i] = obtain_operation (exp, index);
 	rop = obtain_operand (exp, index);
 	
 	tree[i]->node.parent.rvalue = rop;
@@ -60,22 +81,20 @@ struct exptree *expression_tree (char *exp, int *index) {
 				tree[i - 1]->above->node.parent.rvalue = tree[i];
 			tree[i - 1]->above = tree[i];
 		}
-		
-		// adjusting the tree array
-		tree[i + 1] = tree[i - 1];
-		while (tree[i + 1]->above)
-			tree[i + 1] = tree[i + 1]->above;
-	
+
 		tree[i - 1] = tree[i];
-		
 		}
 	}
 
+	// adjusting the tree array
+	tree[2] = tree[0];
+	while (tree[2]->above)
+		tree[2] = tree[2]->above;
+
 	tree[1] = tree[2];
-	while (tree[1]->node.parent.lvalue) {
+	while (tree[1]->node.parent.lvalue)
 		tree[1] = tree[1]->node.parent.lvalue;
-	}
-	tree[1]->node.parent.lvalue = lop;	
+	tree[1]->node.parent.lvalue = lop;
 
 	return tree[2];
 }
