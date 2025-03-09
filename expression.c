@@ -37,7 +37,9 @@ void print_node(exptree *tree) {
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *lop = obtain_operand (exp, &exp_index), *tree = expression_tree (exp, &exp_index);		
+	exptree *tree = expression_tree (exp, &exp_index);		
+	
+	
 	print_node (tree);
 
 //	for (unsigned short int i = 0; exp[exp_index] != '\0'; i = 1) {
@@ -77,7 +79,7 @@ void expression (char *exp) {
 }
 
 struct exptree *expression_tree (char *exp, int *index) {	
-	exptree *rop, *tree[3];
+	exptree *lop = obtain_operand (exp, &exp_index), *rop, *tree[3];
 	for (unsigned short int i = 0; exp[*index] != '\0'; i = 1) {
 	tree[i] = obtain_operation (exp, index);	
 	rop = obtain_operand (exp, index);
@@ -111,6 +113,12 @@ struct exptree *expression_tree (char *exp, int *index) {
 		tree[i - 1] = tree[i];
 		}
 	}
+
+	tree[1] = tree[2];
+	while (!(tree[1]->is_child)) {
+		tree[1] = tree[1]->node.parent.lvalue;
+	}
+	tree[1].node.child.operation = lop;	
 
 	return tree[2];
 }
