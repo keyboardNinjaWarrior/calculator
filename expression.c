@@ -6,6 +6,7 @@ unsigned short int check_operator (char *,unsigned int *);
 bool check_digits (char *, unsigned int *);
 struct exptree *obtain_operation (char *, int *);
 struct exptree *obtain_operand (char *, int *);
+struct exptree *expression_tree (char *, int *);	
 
 typedef struct exptree {
 	bool is_child;
@@ -25,31 +26,93 @@ typedef struct exptree {
 
 } exptree;
 
+void print_node(exptree *tree) {
+	if (tree->is_child) {
+		printf ("%Lf ", tree->node.child.operand);
+	} else {
+		print_node(tree->node.parent.lvalue);
+		print_node(tree->node.parent.rvalue);
+	}
+}
+
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *lop, *rop, *tree[3];
+	exptree *lop = obtain_operand (exp, &exp_index), *tree = expression_tree (exp, &exp_index);		
+	print_node (tree);
 
-	lop	= obtain_operand (exp, &exp_index);
-	for (unsigned short int i = 0; exp[exp_index] != '\0'; i = 1) {
-		tree[i] = obtain_operation (exp, &exp_index);	
-		rop = obtain_operand (exp, &exp_index);
-		
-		tree[i]->node.parent.rvalue = rop;
-		rop->above = tree[i];
+//	for (unsigned short int i = 0; exp[exp_index] != '\0'; i = 1) {
+//		tree[i] = obtain_operation (exp, &exp_index);	
+//		rop = obtain_operand (exp, &exp_index);
+//		
+//		tree[i]->node.parent.rvalue = rop;
+//		rop->above = tree[i];
+//	
+//		if (i == 1) {
+//			if (tree[i]->node.parent.precedence > tree[i - 1]->node.parent.precedence) {
+//				// adjusting the tree
+//				tree[i]->node.parent.lvalue = tree[i - 1]->node.parent.rvalue;
+//				tree[i - 1]->node.parent.rvalue->above = tree[i];
+//				tree[i - 1]->node.parent.rvalue = tree[i];
+//				tree[i]->above = tree[i - 1];
+//				
+//			} else {
+//				while ((tree[i - 1]->above) && tree[i]->node.parent.precedence <= tree[i - 1]->above->node.parent.precedence) {
+//					tree[i - 1] = tree[i - 1]->above;
+//				}
+//				// adjusting the tree
+//				tree[i]->node.parent.lvalue = tree[i - 1];
+//				tree[i]->above = tree[i - 1]->above;
+//				tree[i - 1]->above = tree[i];
+//			}
+//			
+//			// adjusting the tree array
+//			while (tree[i - 1]->above) {
+//				tree[i - 1] = tree[i - 1]->above;
+//			}
+//			tree[i + 1] = tree[i - 1];
+//			tree[i - 1] = tree[i];
+//		}
+//	}
+	
+}
 
-		if (i == 1) {
-			if (tree[i]->node.parent.precedence > tree[i - 1]->node.parent.precedence) {
-				tree[i]->node.parent.lvalue = tree[i - 1]->node.parent.rvalue;
-				tree[i - 1]->node.parent.rvalue->above = tree[i];
-				tree[i - 1]->node.parent.rvalue = tree[i];
-				tree[i]->above = tree[i - 1];
-				tree[i + 1] = tree[i - 1];
-				tree[i - 1] = tree[i];
+struct exptree *expression_tree (char *exp, int *index) {	
+	exptree *rop, *tree[3];
+	for (unsigned short int i = 0; exp[*index] != '\0'; i = 1) {
+	tree[i] = obtain_operation (exp, index);	
+	rop = obtain_operand (exp, index);
+	
+	tree[i]->node.parent.rvalue = rop;
+	rop->above = tree[i];
+
+	if (i == 1) {
+		if (tree[i]->node.parent.precedence > tree[i - 1]->node.parent.precedence) {
+			// adjusting the tree
+			tree[i]->node.parent.lvalue = tree[i - 1]->node.parent.rvalue;
+			tree[i - 1]->node.parent.rvalue->above = tree[i];
+			tree[i - 1]->node.parent.rvalue = tree[i];
+			tree[i]->above = tree[i - 1];
+			
+		} else {
+			while ((tree[i - 1]->above) && tree[i]->node.parent.precedence <= tree[i - 1]->above->node.parent.precedence) {
+				tree[i - 1] = tree[i - 1]->above;
 			}
-
+			// adjusting the tree
+			tree[i]->node.parent.lvalue = tree[i - 1];
+			tree[i]->above = tree[i - 1]->above;
+			tree[i - 1]->above = tree[i];
+		}
+		
+		// adjusting the tree array
+		while (tree[i - 1]->above) {
+			tree[i - 1] = tree[i - 1]->above;
+		}
+		tree[i + 1] = tree[i - 1];
+		tree[i - 1] = tree[i];
 		}
 	}
-	
+
+	return tree[2];
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
