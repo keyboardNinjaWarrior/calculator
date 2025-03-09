@@ -9,17 +9,16 @@ struct exptree *obtain_operand (char *, int *);
 
 typedef struct exptree {
 	bool is_child;
-
+	struct exptree *above;
 	union {
 		struct {
-			struct exptree *above;
 			struct exptree *lvalue;
+			unsigned short int precedence;
 			unsigned short int operation;
 			struct exptree *rvalue;
 		} parent;
 
 		struct {
-			struct exptree *above;
 			long double *operand;
 		} child;	
 	} node;
@@ -32,14 +31,26 @@ void expression (char *exp) {
 
 	lop	= obtain_operand (exp, &exp_index);
 	if (exp[exp_index] != '\0') {
-		oper = obtain_operation (exp, &exp_index);
+		oper = obtain_operation (exp, &exp_index);	
 		rop = obtain_operand (exp, &exp_index);
+		if (lop->above == NULL) {
+			lop->above = oper;
+			oper->node.parent.lvalue = lop;
+			oper->node.parent.rvalue = rop;
+		}
 	}
 	
 	printf("%.9Lf\n", *(lop->node.child.operand));
 	printf("%d\n", oper->node.parent.operation);
 	printf("%.9Lf\n", *(rop->node.child.operand));
 }
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * obtain operand &	Both first check if the syntax is valid and the 	*
+ * obtain operation	suitable characters exist at their positions. Then 	*
+ * 			they parse them and stor them in exptree node at 	*
+ * 			its relative positions.					*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct exptree *obtain_operand (char *exp, int *index) {	
 	exptree *operand = malloc (sizeof (exptree));
@@ -56,6 +67,15 @@ struct exptree *obtain_operation (char *exp, int *index) {
 	struct exptree *operator;
 	if ((operator = malloc (sizeof (exptree))) && (operator->node.parent.operation = check_operator (exp, index))) {
 		operator->is_child = false;
+		//Associates precedence depending on the value of operator
+		switch (operator->node.parent.operation) {
+			case 1: case 2:
+				operator->node.parent.precedence = 1;
+				break;
+			case 3: case 4:
+				operator->node.parent.precedence = 2;
+				break;
+		}
 	} else {
 		exit (4);
 	}
