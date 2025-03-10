@@ -26,15 +26,16 @@ typedef struct exptree {
 
 } exptree;
 
-struct exptree *expression_tree (char *, int *, exptree *);	
+struct exptree *expression_tree (char *, int *, exptree *, exptree *);	
 long double evaltree (exptree *);
+void set_operation_value (exptree *, int *, unsigned short int *, bool *, bool *, unsigned short int *, unsigned short int *) {
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *tree;
 	if (!(tree = malloc (sizeof (exptree))))
 		exit (2);
-	tree = expression_tree (exp, &exp_index, tree);
+	tree = expression_tree (exp, &exp_index, make_node(exp, &exp_index), make_node(exp, &exp_index));
 	printf ("%Lf\n", tree->node.child.operand);
 }
 
@@ -79,9 +80,9 @@ struct exptree *expression_tree (char *exp, int *index, exptree *nodeA, exptree 
 		exit (2);
 	if (nodeA->is_child && !nodeB->node.parent.is_unary) {
 		cojoined_node = nodeB;
-		cojined_node->node.parent.lvalue = nodeA;
+		cojoined_node->node.parent.lvalue = nodeA;
 		return cojoined_node;
-	} else if (nodeB->is_child && nodeA->node.paren.isunary) {
+	} else if (nodeB->is_child && nodeA->node.parent.is_unary) {
 		cojoined_node = nodeA;
 		cojoined_node->node.parent.lvalue = nodeB;
 		return cojoined_node;
@@ -118,6 +119,7 @@ struct exptree *obtain_operand (char *exp, int *index) {
 
 struct exptree *obtain_operation (char *exp, int *index) {
 	struct exptree *operator;
+	bool child = false;
 
 	if (!(operator = malloc (sizeof (exptree))))
 		exit (2);
@@ -125,53 +127,47 @@ struct exptree *obtain_operation (char *exp, int *index) {
 	operator->is_child = false;	
 	switch (exp[*index]) {
 		case '+': 
-			*index = *index + 1;
-			operator->node.parent.precedence = 1;
-			operator->node.parent.operation = 1;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 1, 1);
 			break;
 		case '-':
-			*index = *index + 1;
-			operator->node.parent.precedence = 1;
-			operator->node.parent.operation = 2;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 1, 2);
 			break;
 		case '*':
-			*index = *index + 1;
-			operator->node.parent.precedence = 2;
-			operator->node.parent.operation = 3;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 2, 3);
 			break;	
 		case '/':
-			*index = *index + 1;
-			operator->node.parent.precedence = 2;
-			operator->node.parent.operation = 4;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 2, 4);
 			break;
 		case '^':
-			*index = *index + 1;
-			operator->node.parent.precedence = 3;
-			operator->node.parent.operation = 5;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 3, 5);
 			break;
 		case 'v':
-			*index = *index + 1;
-			operator->node.parent.precedence = 3;
-			operator->node.parent.operation = 6;
-			operator->node.parent.is_unary = false;
+			set_operation_value (operator, index, 1, &child, false, 3, 6);
 			break;
 		case 's':
 			if (strncmp (exp + *index, "sqrt", 5)) {
-				*index = *index + 5;
-				operator->node.parent.precedence = 4;
-				operator->node.parent.operation = 5;
-				operator->node.parent.is_unary = true;
+				set_operation_value (operator, index, 5, &child, true, 4, 7);
 				break;
 			}
 		default:
 			exit (4);
 	}
 	return operator;
+}
+
+void set_operation_value (exptree *operator, 			\
+			  int *index, 				\
+			  unsigned short int *steps, 		\
+			  bool *child, 				\
+			  bool *uniary, 			\	
+			  unsigned short int *precedence,	\
+			  unsigned short int * value) {
+
+	*index = *index + *steps;
+	operator->node.parent.precedence = *precedence;
+	operator->is_child = *child;
+	operator->node.parent.operation = *value;
+	operator->node.parent.is_unary = *uniary;
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
