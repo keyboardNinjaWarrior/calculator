@@ -46,6 +46,6 @@ char *remove_spaces (char *exp) {
 // Errors
 // 1		missing tag initilization
 // 2		memory allocation failled
-// 3		syntax error
-// 4		error in allocating or identifying operation
+// 3		error in obtaining digit
+// 4		error in obtailing operation
 // 5		error in tree calculation

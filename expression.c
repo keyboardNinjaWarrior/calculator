@@ -2,21 +2,21 @@
 
 long double *parse_digits (char *, unsigned int *);
 signed short int parse_sign (char *, unsigned int *);
-unsigned short int check_operator (char *, unsigned int *);
 bool check_digits (char *, unsigned int *);
 struct exptree *obtain_operation (char *, int *);
 struct exptree *obtain_operand (char *, int *);
-struct exptree *expression_tree (char *, int *);	
+struct exptree *make_node (char *, int *);
 
 typedef struct exptree {
 	bool is_child;
 	struct exptree *above;
 	union {
 		struct {
-			struct exptree *lvalue;
+			bool is_unary;
 			unsigned short int precedence;
 			unsigned short int operation;
 			struct exptree *rvalue;
+			struct exptree *lvalue;
 		} parent;
 
 		struct {
@@ -26,14 +26,17 @@ typedef struct exptree {
 
 } exptree;
 
+struct exptree *expression_tree (char *, int *, exptree *);	
 long double evaltree (exptree *);
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *tree = expression_tree (exp, &exp_index);		
-	printf ("%Lf\n", evaltree (tree));
+	exptree *tree;
+	if (!(tree = malloc (sizeof (exptree))))
+		exit (2);
+	tree = expression_tree (exp, &exp_index, tree);
+	printf ("%Lf\n", tree->node.child.operand);
 }
-
 
 long double evaltree (exptree *tree) {
 	if (tree->is_child)
@@ -57,62 +60,30 @@ long double evaltree (exptree *tree) {
 		}
 }
 
- /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * expression tree:	This is the core of function of this program as it generates 	*
- * 			the tree. Two pair of nodes having an operation and right 	*
- * 			operand is created and stored in node array of three elements. 	*
- * 			The first contain initial, second current and third points 	*
- * 			to the top most element. The insertion is done comparing the 	*
- * 			precedences on the nodes with each other. The lower precedences *	
- * 			nodes are inserted above and higher precedences nodes are 	*
- * 			inserted bellow. It's better to understand to insertion through *	
- * 			diagram.							*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * expression tree:	This is the core of function of this program as it 	*
+ * 			generates the tree. Two pair of nodes having an 	*
+ * 			operation and right operand is created and stored in 	*
+ * 			node array of three elements. The first contain initial,* 	
+ * 			second current and third points to the top most element.*	 
+ * 			The insertion is done comparing the precedences on the	*
+ * 			nodes with each other. The lower precedences nodes are 	*
+ * 			inserted above and higher precedences nodes are 	*
+ * 			inserted bellow. It's better to understand to insertion	*
+ * 			through diagram.					*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *expression_tree (char *exp, int *index) {	
-	exptree *lop = obtain_operand (exp, index), *rop, *tree[3];
+struct exptree *expression_tree (char *exp, int *index, exptree *tree) {
+	tree = make_node ( 
+}
 
-	for (unsigned short int i = 0; exp[*index] != '\0'; i = 1) {
-	tree[i] = obtain_operation (exp, index);
-	rop = obtain_operand (exp, index);
-	
-	tree[i]->node.parent.rvalue = rop;
-	rop->above = tree[i];
-
-	if (i == 1) {
-		if (tree[i]->node.parent.precedence > tree[i - 1]->node.parent.precedence) {
-			// adjusting the tree
-			tree[i]->node.parent.lvalue = tree[i - 1]->node.parent.rvalue;
-			tree[i - 1]->node.parent.rvalue->above = tree[i];
-			tree[i - 1]->node.parent.rvalue = tree[i];
-			tree[i]->above = tree[i - 1];
-			
-		} else {
-			while ((tree[i - 1]->above) && tree[i]->node.parent.precedence <= tree[i - 1]->above->node.parent.precedence)
-				tree[i - 1] = tree[i - 1]->above;
-			// adjusting the tree
-			tree[i]->node.parent.lvalue = tree[i - 1];
-			tree[i]->above = tree[i - 1]->above;
-			if (tree[i - 1]->above)
-				tree[i - 1]->above->node.parent.rvalue = tree[i];
-			tree[i - 1]->above = tree[i];
-		}
-
-		tree[i - 1] = tree[i];
-		}
-	}
-
-	// adjusting the tree array
-	tree[2] = tree[0];
-	while (tree[2]->above)
-		tree[2] = tree[2]->above;
-
-	tree[1] = tree[2];
-	while (tree[1]->node.parent.lvalue)
-		tree[1] = tree[1]->node.parent.lvalue;
-	tree[1]->node.parent.lvalue = lop;
-
-	return tree[2];
+// makes a node and return it
+struct exptree *make_node (char *exp, int *index) {	
+	exptree *n;
+	if (check_digits (exp, index))
+		return 	n = obtain_operand (exp, index);
+	else
+		return n = obtain_operation (exp, index);
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -123,31 +94,70 @@ struct exptree *expression_tree (char *exp, int *index) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct exptree *obtain_operand (char *exp, int *index) {	
-	exptree *operand = malloc (sizeof (exptree));
-	if (check_digits (exp, index)) {
-		operand->is_child = true;
-		operand->node.child.operand = parse_digits (exp, index);
-	} else {
-		exit (3);
-	}
+	exptree *operand; 
+	if (!(operand = malloc (sizeof (exptree))))
+		exit (2);	
+	
+	operand->is_child = true;
+	operand->node.child.operand = parse_digits (exp, index);
+
 	return operand;
 } 
 
 struct exptree *obtain_operation (char *exp, int *index) {
 	struct exptree *operator;
-	if ((operator = malloc (sizeof (exptree))) && (operator->node.parent.operation = check_operator (exp, index))) {
-		operator->is_child = false;
-		//Associates precedence depending on the value of operator
-		switch (operator->node.parent.operation) {
-			case 1: case 2:
-				operator->node.parent.precedence = 1;
+
+	if (!(operator = malloc (sizeof (exptree))))
+		exit (2);
+
+	operator->is_child = false;	
+	switch (exp[*index]) {
+		case '+': 
+			*index = *index + 1;
+			operator->node.parent.precedence = 1;
+			operator->node.parent.operation = 1;
+			operator->node.parent.is_unary = false;
+			break;
+		case '-':
+			*index = *index + 1;
+			operator->node.parent.precedence = 1;
+			operator->node.parent.operation = 2;
+			operator->node.parent.is_unary = false;
+			break;
+		case '*':
+			*index = *index + 1;
+			operator->node.parent.precedence = 2;
+			operator->node.parent.operation = 3;
+			operator->node.parent.is_unary = false;
+			break;	
+		case '/':
+			*index = *index + 1;
+			operator->node.parent.precedence = 2;
+			operator->node.parent.operation = 4;
+			operator->node.parent.is_unary = false;
+			break;
+		case '^':
+			*index = *index + 1;
+			operator->node.parent.precedence = 3;
+			operator->node.parent.operation = 5;
+			operator->node.parent.is_unary = false;
+			break;
+		case 'v':
+			*index = *index + 1;
+			operator->node.parent.precedence = 3;
+			operator->node.parent.operation = 6;
+			operator->node.parent.is_unary = false;
+			break;
+		case 's':
+			if (strncmp (exp + *index, "sqrt", 5)) {
+				*index = *index + 5;
+				operator->node.parent.precedence = 4;
+				operator->node.parent.operation = 5;
+				operator->node.parent.is_unary = true;
 				break;
-			case 3: case 4:
-				operator->node.parent.precedence = 2;
-				break;
-		}
-	} else {
-		exit (4);
+			}
+		default:
+			exit (4);
 	}
 	return operator;
 }
@@ -166,9 +176,11 @@ struct exptree *obtain_operation (char *exp, int *index) {
 long double *parse_digits (char *exp, unsigned int *start) {
 	signed short int sign = parse_sign (exp, start);
 	long double *operand;
+
 	if (!(operand = malloc (sizeof (long double))))
 		exit (2);
 	*operand = 0;
+
 	bool decimal = false;
 	unsigned int decimal_part = 0;
 
@@ -212,30 +224,6 @@ signed short int parse_sign (char *exp, unsigned int *start) {
 	} else {
 		++(*start);
 		return 1 * parse_sign(exp, start);
-	}
-}
-
- /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * check operator	returns true and false if it a given operation:		*
- * 			+ - / *							*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
-
-unsigned short int check_operator (char *exp, unsigned int *index) {
-	switch (exp[*index]) {
-		case '+':
-			*index = *index + 1;
-			return 1;
-		case '-':
-			*index = *index + 1;
-			return 2;
-		case '/':
-			*index = *index + 1;
-			return 3;	
-		case '*':
-			*index = *index + 1;
-			return 4;
-		default:
-			return 0;
 	}
 }
 
