@@ -178,9 +178,11 @@ struct exptree *obtain_operand (char *exp, int *index) {
 }
 
 // makes a node and return it
-struct exptree *make_node (char *exp, int *index) {	
+struct exptree *make_node (char *exp, int *index) {
 	exptree *n;
-	if (check_digits (exp, index))
+	if (exp[*index] == '\0')
+		return NULL;
+	else if (check_digits (exp, index))
 		return 	n = obtain_operand (exp, index);
 	else
 		return n = obtain_operation (exp, index);
@@ -203,7 +205,10 @@ struct exptree *expression_tree (char *exp, int *index, exptree *nodeB, exptree 
 	exptree *cojoined_node;
 	if (!(cojoined_node = malloc (sizeof (exptree))))
 		exit (2);
-	if (nodeA->is_child && !nodeB->node.parent.is_unary) {
+
+	if (!nodeB) {
+		return nodeA;
+	} else if (nodeA->is_child && !nodeB->node.parent.is_unary) {
 		cojoined_node = nodeB;
 		cojoined_node->node.parent.lvalue = nodeA;
 		return cojoined_node;
@@ -237,11 +242,20 @@ long double evaltree (exptree *tree) {
 		}
 }
 
+void print_nodes (exptree *tree) {
+	if (tree->is_child) {
+		printf ("%Lf\n", *tree->node.child.operand);
+	} else {
+		print_nodes (tree->node.parent.lvalue);
+		print_nodes (tree->node.parent.rvalue);
+	}
+}
+
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *tree;
 	if (!(tree = malloc (sizeof (exptree))))
 		exit (2);
 	tree = expression_tree (exp, &exp_index, make_node(exp, &exp_index), make_node(exp, &exp_index));
-	printf ("%Lf\n", tree->node.child.operand);
+	print_nodes (tree);
 }
