@@ -73,8 +73,20 @@ long double evaltree (exptree *tree) {
  * 			through diagram.					*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *expression_tree (char *exp, int *index, exptree *tree) {
-	tree = make_node ( 
+struct exptree *expression_tree (char *exp, int *index, exptree *nodeA, exptree *nodeB) {
+	exptree *cojoined_node;
+	if (!(cojoined_node = malloc (sizeof (exptree))))
+		exit (2);
+	if (nodeA->is_child && !nodeB->node.parent.is_unary) {
+		cojoined_node = nodeB;
+		cojined_node->node.parent.lvalue = nodeA;
+		return cojoined_node;
+	} else if (nodeB->is_child && nodeA->node.paren.isunary) {
+		cojoined_node = nodeA;
+		cojoined_node->node.parent.lvalue = nodeB;
+		return cojoined_node;
+	}
+	
 }
 
 // makes a node and return it
