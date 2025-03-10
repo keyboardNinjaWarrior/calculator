@@ -48,3 +48,4 @@ char *remove_spaces (char *exp) {
 // 2		memory allocation failled
 // 3		syntax error
 // 4		error in allocating or identifying operation
+// 5		error in tree calculation

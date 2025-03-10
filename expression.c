@@ -2,7 +2,7 @@
 
 long double *parse_digits (char *, unsigned int *);
 signed short int parse_sign (char *, unsigned int *);
-unsigned short int check_operator (char *,unsigned int *);
+unsigned short int check_operator (char *, unsigned int *);
 bool check_digits (char *, unsigned int *);
 struct exptree *obtain_operation (char *, int *);
 struct exptree *obtain_operand (char *, int *);
@@ -26,19 +26,35 @@ typedef struct exptree {
 
 } exptree;
 
-void print_node (exptree *tree) {
-	if (tree->is_child) {
-		printf ("%Lf\n", *tree->node.child.operand);
-	} else {
-		print_node (tree->node.parent.lvalue);
-		print_node (tree->node.parent.rvalue);
-	}
-}
+long double evaltree (exptree *);
 
 void expression (char *exp) {
 	unsigned int exp_index = 0;
 	exptree *tree = expression_tree (exp, &exp_index);		
-	print_node (tree);
+	printf ("%Lf\n", evaltree (tree));
+}
+
+
+long double evaltree (exptree *tree) {
+	if (tree->is_child)
+		return *tree->node.child.operand;
+	else 
+		switch (tree->node.parent.operation) {
+			case 1:
+				return evaltree (tree->node.parent.lvalue) + evaltree (tree->node.parent.rvalue);
+				break;
+			case 2:
+				return evaltree (tree->node.parent.lvalue) - evaltree (tree->node.parent.rvalue);
+				break;
+			case 3:
+				return evaltree (tree->node.parent.lvalue) / evaltree (tree->node.parent.rvalue);
+				break;
+			case 4:
+				return evaltree (tree->node.parent.lvalue) * evaltree (tree->node.parent.rvalue);
+				break;
+			default:
+				exit (5);
+		}
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
