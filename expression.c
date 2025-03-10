@@ -28,12 +28,16 @@ typedef struct exptree {
 
 long double evaltree (exptree *);
 
-void expression (char *exp) {
+long double expression (char *exp) {
 	unsigned int exp_index = 0;
-	exptree *tree = expression_tree (exp, &exp_index);		
-	printf ("%Lf\n", evaltree (tree));
+	exptree *tree = expression_tree (exp, &exp_index);
+	return evaltree (tree);
 }
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * eval tree		It takes the treee and through recursion it evaluates 	*
+ *			the expression.						*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 long double evaltree (exptree *tree) {
 	if (tree->is_child)
@@ -52,6 +56,8 @@ long double evaltree (exptree *tree) {
 			case 4:
 				return evaltree (tree->node.parent.lvalue) * evaltree (tree->node.parent.rvalue);
 				break;
+			case 5:
+				return powl (evaltree (tree->node.parent.lvalue), evaltree (tree->node.parent.rvalue));
 			default:
 				exit (5);
 		}
@@ -145,6 +151,8 @@ struct exptree *obtain_operation (char *exp, int *index) {
 			case 3: case 4:
 				operator->node.parent.precedence = 2;
 				break;
+			case 5:
+				operator->node.parent.precedence = 3;
 		}
 	} else {
 		exit (4);
@@ -217,7 +225,7 @@ signed short int parse_sign (char *exp, unsigned int *start) {
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * check operator	returns true and false if it a given operation:		*
- * 			+ - / *							*
+ * 			+ - / * ^							*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 unsigned short int check_operator (char *exp, unsigned int *index) {
@@ -234,6 +242,9 @@ unsigned short int check_operator (char *exp, unsigned int *index) {
 		case '*':
 			*index = *index + 1;
 			return 4;
+		case '^':
+			*index = *index + 1;
+			return 5;
 		default:
 			return 0;
 	}
