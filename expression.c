@@ -1,5 +1,13 @@
 #include "lib.h"
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * the structure of tree consists of a boolian which tells if its end node or not	*  
+ * and an above pointer to itself for pointing nodes that are up. It the consists	*   
+ * of union of end and the rest of the nodes. the other operational nodes have an 	*
+ * rvalue and an lvalue, the operational integer, its precedence and boolian det-	*
+ * ermining if its a unary operator or not.						*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
 typedef struct exptree {
 	bool is_child;
 	struct exptree *above;
@@ -19,25 +27,24 @@ typedef struct exptree {
 
 } exptree;
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * check operand	returns true and false if the expression is starting 	*
- * 			with '+', '-', '.' or is between 0 and 9 		*
- * 			chars.							*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * check operand	returns true and false if the expression is starting with 	*	
+ * 			'+', '-', '.' or is between 0 and 9 chars			*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 bool check_digits (char *exp, unsigned int *index) {
 	if ((exp[*index] >= '0' && exp[*index] <= '9') || exp[*index] == '.') 
 		return true;
-	else if ((exp[*index] == '+'|| exp[*index] == '-') && !(exp[*index - 1] >= '0' && exp[*index - 1] <= '9'))
+	else if ((exp[*index] == '+'|| exp[*index] == '-') && !(*index - 1 >= 0 && exp[*index - 1] >= '0' && exp[*index - 1] <= '9'))
 		return true;
 	else
 	       return false;	
 }
 
- /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * parse sign:		checks for + and negative signs through recursion 	*	
- * 			and then returns +1 and -1 respectively.		*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * parse sign:		checks for + and negative signs through recursion and then	* 
+ * 			returns +1 and -1 respectively.					*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
 signed short int parse_sign (char *exp, unsigned int *start) {
 	if (!(exp[*start] == '-' || exp[*start] == '+')) {
@@ -53,16 +60,15 @@ signed short int parse_sign (char *exp, unsigned int *start) {
 }
 
 
- /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * parse digits:	It takes an expression and starting point. Then it 	*
- * 			allocates memory for storing the long double. It loops 	*
- * 			over the characters and adds them to the variable and 	*
- * 			multiplies it with ten. Meanwhile it looks for the 	*
- * 			decimal and if its there, it starts adding the digits 	*
- * 			after the decimal. At the end it divides the number 	*
- * 			with it. It also evaluates expression given in 		*
- * 			scientific notation through recursion.			*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * parse digits:	It takes an expression and starting point. Then it allocates 	*
+ * 			memory for storing the long double. It loops over the chara-	*
+ * 			cters and adds them to the  variable and multiplies  it with 	*
+ * 			ten.  Meanwhile it  looks for the  decimal and if its there, 	*
+ * 			it starts  adding the digits  after the decimal. At the  end	*
+ * 			it divides the number with  it. It also evaluates expression	*
+ * 			given in scientific notation through recursion.			*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 long double *parse_digits (char *exp, unsigned int *start) {
 	signed short int sign = parse_sign (exp, start);
@@ -100,7 +106,12 @@ long double *parse_digits (char *exp, unsigned int *start) {
 	return operand;
 }
 
-// This function is used with obtain operation
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * set operation value	this function takes the parameters that needed to assigned	* 
+ * 			to operator and then assign to it.  since a pointer to the 	*
+ * 			exptree is passed the changes happen in real time.		*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
 void set_operation_value (exptree *operator, 				\
 			  int *index, 					\
 			  const unsigned short int steps, 		\
@@ -114,12 +125,24 @@ void set_operation_value (exptree *operator, 				\
 	operator->node.parent.is_unary = uniary;
 }
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+  * compare	this function is used to compare strings  at a given index to the 	*
+  * 		nth terms 								*
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 bool compare (char *exp, char *str, unsigned int index, unsigned short int end) {
 	for(int i = 0; index < end; index++, i++)
 		if (exp[index] != str[i])
 			return false;
 	return true;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * obtain operand &	Both first check if the syntax is valid and the 	*
+ * obtain operation	suitable characters exist at their positions. Then 	*
+ * 			they parse them and stor them in exptree node at 	*
+ * 			its relative positions.					*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct exptree *obtain_operation (char *exp, int *index) {
 	struct exptree *operator;
@@ -159,12 +182,7 @@ struct exptree *obtain_operation (char *exp, int *index) {
 	return operator;
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * obtain operand &	Both first check if the syntax is valid and the 	*
- * obtain operation	suitable characters exist at their positions. Then 	*
- * 			they parse them and stor them in exptree node at 	*
- * 			its relative positions.					*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// see above comment
 
 struct exptree *obtain_operand (char *exp, int *index) {	
 	exptree *operand; 
@@ -177,8 +195,12 @@ struct exptree *obtain_operand (char *exp, int *index) {
 	return operand;
 }
 
-// makes a node and return it
-struct exptree *make_node (char *exp, int *index) {
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * node			as the name sugguests it checks if the node is an digit		*
+ * 			or an operand or \0 and hence returns it accordingly		*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+struct exptree *node (char *exp, int *index) {
 	exptree *n;
 	if (exp[*index] == '\0')
 		return NULL;
@@ -188,58 +210,40 @@ struct exptree *make_node (char *exp, int *index) {
 		return n = obtain_operation (exp, index);
 }
 
- /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * expression tree:	This is the core of function of this program as it 	*
- * 			generates the tree. Two pair of nodes having an 	*
- * 			operation and right operand is created and stored in 	*
- * 			node array of three elements. The first contain initial,* 	
- * 			second current and third points to the top most element.*	 
- * 			The insertion is done comparing the precedences on the	*
- * 			nodes with each other. The lower precedences nodes are 	*
- * 			inserted above and higher precedences nodes are 	*
- * 			inserted bellow. It's better to understand to insertion	*
- * 			through diagram.					*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*
+ * node pair		this  function  makes a pointer and  then compare two nodes	*
+ * 			which are now made inside the  function if the operation is 	*
+ * 			unary  than  it  cojoines the  node b with a and if its not  	*
+ * 			unary then  it cojoins  a with b on their left side.		*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *expression_tree (char *exp, int *index, exptree *nodeB, exptree *nodeA) {
-	exptree *cojoined_node;
-	if (!(cojoined_node = malloc (sizeof (exptree))))
+struct exptree *node_pair (char *exp, int *index) {
+	exptree *cojoined_node, *a, *b;
+	if (!(cojoined_node = malloc (sizeof (exptree)) && (a = malloc (sizeof (exptree))) && (b = malloc (sizeof (exptree)))))
 		exit (2);
-
-	if (!nodeB) {
-		return nodeA;
-	} else if (nodeA->is_child && !nodeB->node.parent.is_unary) {
-		cojoined_node = nodeB;
-		cojoined_node->node.parent.lvalue = nodeA;
-		return cojoined_node;
-	} else if (nodeB->is_child && nodeA->node.parent.is_unary) {
-		cojoined_node = nodeA;
-		cojoined_node->node.parent.lvalue = nodeB;
-		return cojoined_node;
-	}
 	
+	a = node (exp, index);
+	b = node (exp, index);
+
+	if (!b) {
+		return a;
+	} else if (a->is_child && !b->node.parent.is_unary) {
+		cojoined_node = b;
+		cojoined_node->node.parent.lvalue = a;
+		a->above = cojoined_node;
+		return cojoined_node;
+	} else if (b->is_child && a->node.parent.is_unary) {
+		cojoined_node = a;
+		cojoined_node->node.parent.lvalue = b;
+		b->above = cojoined_node;
+		return cojoined_node;
+	} else {
+		exit (6);
+	}	
 }
 
-long double evaltree (exptree *tree) {
-	if (tree->is_child)
-		return *tree->node.child.operand;
-	else 
-		switch (tree->node.parent.operation) {
-			case 1:
-				return evaltree (tree->node.parent.lvalue) + evaltree (tree->node.parent.rvalue);
-				break;
-			case 2:
-				return evaltree (tree->node.parent.lvalue) - evaltree (tree->node.parent.rvalue);
-				break;
-			case 3:
-				return evaltree (tree->node.parent.lvalue) / evaltree (tree->node.parent.rvalue);
-				break;
-			case 4:
-				return evaltree (tree->node.parent.lvalue) * evaltree (tree->node.parent.rvalue);
-				break;
-			default:
-				exit (5);
-		}
+struct exptree *make_tree (char *exp, int *index, exptree *tree, exptree *a) {
+	
 }
 
 void print_nodes (exptree *tree) {
@@ -252,10 +256,7 @@ void print_nodes (exptree *tree) {
 }
 
 void expression (char *exp) {
-	unsigned int exp_index = 0;
-	exptree *tree;
-	if (!(tree = malloc (sizeof (exptree))))
-		exit (2);
-	tree = expression_tree (exp, &exp_index, make_node(exp, &exp_index), make_node(exp, &exp_index));
-	print_nodes (tree);
+	unsigned int index = 0;
+	exptree *tree = NULL, *a;
+	print_nodes (join_nodes (exp, &index, tree, a));
 }

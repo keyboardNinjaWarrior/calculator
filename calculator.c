@@ -49,3 +49,4 @@ char *remove_spaces (char *exp) {
 // 3		error in obtaining digit
 // 4		error in obtailing operation
 // 5		error in tree calculation
+// 6		error making operational node
