@@ -113,7 +113,7 @@ long double *parse_digits (char *exp, unsigned int *start) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 void set_operation_value (exptree *operator, 				\
-			  int *index, 					\
+			  unsigned int *index, 				\
 			  const unsigned short int steps, 		\
 			  const bool uniary,	 			\
 			  const unsigned short int precedence,		\
@@ -144,7 +144,7 @@ bool compare (char *exp, char *str, unsigned int index, unsigned short int end) 
  * 			its relative positions.					*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct exptree *obtain_operation (char *exp, int *index) {
+struct exptree *obtain_operation (char *exp, unsigned int *index) {
 	struct exptree *operator;
 	bool child = false;
 
@@ -184,7 +184,7 @@ struct exptree *obtain_operation (char *exp, int *index) {
 
 // see above comment
 
-struct exptree *obtain_operand (char *exp, int *index) {	
+struct exptree *obtain_operand (char *exp, unsigned int *index) {	
 	exptree *operand; 
 	if (!(operand = malloc (sizeof (exptree))))
 		exit (2);
@@ -200,7 +200,7 @@ struct exptree *obtain_operand (char *exp, int *index) {
  * 			or an operand or \0 and hence returns it accordingly		*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct exptree *node (char *exp, int *index) {
+struct exptree *node (char *exp, unsigned int *index) {
 	exptree *n;
 	if (exp[*index] == '\0')
 		return NULL;
@@ -217,15 +217,14 @@ struct exptree *node (char *exp, int *index) {
  * 			unary then  it cojoins  a with b on their left side.		*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *node_pair (char *exp, int *index) {
+struct exptree *node_pair (char *exp, unsigned int *index) {
 	exptree *cojoined_node, *a, *b;
-	if (!(cojoined_node = malloc (sizeof (exptree)) && (a = malloc (sizeof (exptree))) && (b = malloc (sizeof (exptree)))))
+	if (!((cojoined_node = malloc (sizeof (exptree))) && (a = malloc (sizeof (exptree))) && (b = malloc (sizeof (exptree)))))
 		exit (2);
 	
 	a = node (exp, index);
-	b = node (exp, index);
-
-	if (!b) {
+		
+	if (!(b = node (exp, index))) {
 		return a;
 	} else if (a->is_child && !b->node.parent.is_unary) {
 		cojoined_node = b;
@@ -234,7 +233,7 @@ struct exptree *node_pair (char *exp, int *index) {
 		return cojoined_node;
 	} else if (b->is_child && a->node.parent.is_unary) {
 		cojoined_node = a;
-		cojoined_node->node.parent.lvalue = b;
+		cojoined_node->node.parent.rvalue = b;
 		b->above = cojoined_node;
 		return cojoined_node;
 	} else {
@@ -242,21 +241,42 @@ struct exptree *node_pair (char *exp, int *index) {
 	}	
 }
 
-struct exptree *make_tree (char *exp, int *index, exptree *tree, exptree *a) {
-	
+struct exptree *make_tree (char *exp, unsigned int *index, exptree *tree, exptree *a) {
+		if (a->is_child && !tree) {
+			return a;
+		} else if (tree && a->is_child) {
+			a->above = tree;
+			tree->node.parent.rvalue = a;
+			return tree;
+		} else if (!tree && !a->is_child) {
+			return make_tree(exp, index, a, node_pair(exp, index));
+		} else if (tree && !a->is_child) {
+			if (tree->node.parent.precedence < a->node.parent.precedence) {
+				if(tree->node.parent.rvalue) {
+					tree->node.parent.rvalue->above = a;
+					a->node.parent.rvalue = tree->node.parent.rvalue;
+				}
+				tree->node.parent.rvalue = a;
+				a->above = tree;
+
+				return make_tree (exp,index, a, node_pair (exp, index));
+			}
+		}
 }
 
+// made on the run to test the tree
 void print_nodes (exptree *tree) {
 	if (tree->is_child) {
 		printf ("%Lf\n", *tree->node.child.operand);
 	} else {
 		print_nodes (tree->node.parent.lvalue);
-		print_nodes (tree->node.parent.rvalue);
+		if (!tree->node.parent.is_unary)
+			print_nodes (tree->node.parent.rvalue);
 	}
 }
 
 void expression (char *exp) {
 	unsigned int index = 0;
-	exptree *tree = NULL, *a;
-	print_nodes (join_nodes (exp, &index, tree, a));
+	exptree *tree = NULL;
+	print_nodes (make_tree(exp, &index, tree, node_pair(exp, &index)));
 }
