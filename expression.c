@@ -1,5 +1,8 @@
 #include "lib.h"
 
+
+unsigned int index = 0;
+
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * the structure of tree consists of a boolian which tells if its end node or not	*  
  * and an above pointer to itself for pointing nodes that are up. It the consists	*   
@@ -32,7 +35,7 @@ typedef struct exptree {
  * 			'+', '-', '.' or is between 0 and 9 chars			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-bool check_digits (char *exp, unsigned int *index) {
+bool check_digits (char *exp) {
 	if ((exp[*index] >= '0' && exp[*index] <= '9') || exp[*index] == '.') 
 
 		return true;
@@ -82,6 +85,10 @@ long double *parse_digits (char *exp, unsigned int *start) {
 		exit (2);
 
 	*operand = 0;
+	
+	if (exp[*start] == '(') {
+
+	}
 
 	bool decimal = false;
 	unsigned int decimal_part = 0;
@@ -192,11 +199,6 @@ struct exptree *obtain_operand (char *exp, unsigned int *index) {
 	exptree *operand; 
 	if (!(operand = malloc (sizeof (exptree))))
 		exit (2);
-	
-	if (exp[*index] == '(') {
-		*index = *index + 1;
-		// working...
-	}
 
 	operand->is_child = true;
 	operand->node.child.operand = parse_digits (exp, index);
@@ -351,12 +353,37 @@ struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, expt
 	}
 }
 
+struct exptree *top_node (exptree *tree) {
+	if (!tree->above)
+		return tree;
+	else
+		return top_node (tree->above);
+}
 
-// made on the run to test the tree
+long double calculate (exptree *tree) {
+	if (tree->is_child) 
+		return *tree->node.child.operand;
+	else if (tree->node.parent.operation == 1)
+		return calculate (tree->node.parent.lvalue) + calculate (tree->node.parent.rvalue);
+	else if (tree->node.parent.operation == 2)
+		return calculate (tree->node.parent.lvalue) - calculate (tree->node.parent.rvalue);
+	else if (tree->node.parent.operation == 3)
+		return calculate (tree->node.parent.lvalue) * calculate (tree->node.parent.rvalue);
+	else if (tree->node.parent.operation == 4)
+		return calculate (tree->node.parent.lvalue) / calculate (tree->node.parent.rvalue);
+	else if (tree->node.parent.operation == 5)
+		return powl (calculate (tree->node.parent.lvalue), calculate (tree->node.parent.rvalue));
+	else if (tree->node.parent.operation == 6)
+		return powl (calculate (tree->node.parent.lvalue), 1 / calculate (tree->node.parent.rvalue));
+	else if (tree->node.parent.operation == 7)
+		return sqrtl (calculate (tree->node.parent.lvalue));
+}
 
+long double expression (char *exp) {
+	exptree *tree = top_node (make_tree(exp, &index, node_pair (exp, &index), node_pair (exp, &index)));
+	return calculate (tree);
+}
 
 void expression (char *exp) {
-	unsigned int index = 0;
-	exptree *tree;
-	print_nodes (make_tree(exp, &index, node_pair (exp, &index), node_pair (exp, &index)));
+	printf ("%Lf\n", return_expression (exp));
 }
