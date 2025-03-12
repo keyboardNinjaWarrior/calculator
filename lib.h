@@ -5,7 +5,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
 
 void expression (char *);
 

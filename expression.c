@@ -36,11 +36,11 @@ typedef struct exptree {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 bool check_digits (char *exp) {
-	if ((exp[*index] >= '0' && exp[*index] <= '9') || exp[*index] == '.') 
+	if ((exp[index] >= '0' && exp[index] <= '9') || exp[index] == '.') 
 
 		return true;
 
-	else if ((exp[*index] == '+'|| exp[*index] == '-') && !(*index - 1 >= 0 && exp[*index - 1] >= '0' && exp[*index - 1] <= '9'))
+	else if ((exp[index] == '+'|| exp[index] == '-') && !(index - 1 >= 0 && exp[index - 1] >= '0' && exp[index - 1] <= '9'))
 
 		return true;
 
@@ -53,16 +53,15 @@ bool check_digits (char *exp) {
  * 			returns +1 and -1 respectively.					*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
-signed short int parse_sign (char *exp, unsigned int *start) {
-	if (!(exp[*start] == '-' || exp[*start] == '+'))
+signed short int parse_sign (char *exp) {
+	if (!(exp[index] == '-' || exp[index] == '+')) {
 		return 1;
-
-	else if (exp[*start] == '-') {
-		++(*start);
-		return -1 * parse_sign(exp, start);	
+	} else if (exp[index] == '-') {
+		++index;
+		return -1 * parse_sign(exp);	
 	} else {
-		++(*start);
-		return 1 * parse_sign(exp, start);
+		++index;	
+		return 1 * parse_sign(exp, ++start);
 	}
 }
 
@@ -77,8 +76,8 @@ signed short int parse_sign (char *exp, unsigned int *start) {
  * 			given in scientific notation through recursion.			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-long double *parse_digits (char *exp, unsigned int *start) {
-	signed short int sign = parse_sign (exp, start);
+long double *parse_digits (char *exp) {
+	signed short int sign = parse_sign (exp);
 	long double *operand;
 
 	if (!(operand = malloc (sizeof (long double))))
@@ -86,17 +85,17 @@ long double *parse_digits (char *exp, unsigned int *start) {
 
 	*operand = 0;
 	
-	if (exp[*start] == '(') {
-
+	if (exp[index] == '(') {
+		//working
 	}
 
 	bool decimal = false;
 	unsigned int decimal_part = 0;
 
-	for (; (exp[*start] >= '0' && exp[*start] <= '9') || exp[*start] == '.'; *start = *start + 1) {
+	for (; (exp[index] >= '0' && exp[index] <= '9') || exp[index] == '.'; index++) {
 		if (exp[*start] != '.') {
 			*operand *= 10;
-			*operand += exp[*start] - '0';	
+			*operand += exp[index] - '0';	
 			if (decimal)
 				++decimal_part;
 		} else if (!decimal) {
@@ -108,10 +107,10 @@ long double *parse_digits (char *exp, unsigned int *start) {
 	
 	*operand = sign * (*operand / powl (10.0, (long double) decimal_part));
 	
-	switch (exp[*start]) {
+	switch (exp[index]) {
 		case 'e': case 'E':
-			*start = *start + 1;
-			*operand *= powl (10.0, *parse_digits (exp, start));
+			++index;
+			*operand *= powl (10.0, *parse_digits (exp));
 	}
 
 	return operand;
@@ -124,13 +123,12 @@ long double *parse_digits (char *exp, unsigned int *start) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 void set_operation_value (exptree *operator, 				\
-			  unsigned int *index, 				\
 			  const unsigned short int steps, 		\
 			  const bool uniary,	 			\
 			  const unsigned short int precedence,		\
 			  int value) {
 
-	*index = *index + steps;
+	index = index + steps;
 	operator->node.parent.precedence = precedence;
 	operator->node.parent.operation = value;
 	operator->node.parent.is_unary = uniary;
@@ -141,9 +139,9 @@ void set_operation_value (exptree *operator, 				\
   * 		nth terms 								*
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool compare (char *exp, char *str, unsigned int index, unsigned short int end) {
-	for(int i = 0; index < end; index++, i++)
-		if (exp[index] != str[i])
+bool compare (char *exp, char *str, unsigned short int I, unsigned short int end) {
+	for(int i = 0; I < end; I++, i++)
+		if (exp[I] != str[i])
 			return false;
 	return true;
 }
@@ -155,7 +153,7 @@ bool compare (char *exp, char *str, unsigned int index, unsigned short int end) 
  * 			its relative positions.					*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct exptree *obtain_operation (char *exp, unsigned int *index) {
+struct exptree *obtain_operation (char *exp) {
 	struct exptree *operator;
 	bool child = false;
 
@@ -163,28 +161,28 @@ struct exptree *obtain_operation (char *exp, unsigned int *index) {
 		exit (2);
 
 	operator->is_child = false;	
-	switch (exp[*index]) {
+	switch (exp[index]) {
 		case '+': 
-			set_operation_value (operator, index, 1, false, 1, 1);
+			set_operation_value (operator, 1, false, 1, 1);
 			break;
 		case '-':
-			set_operation_value (operator, index, 1, false, 1, 2);
+			set_operation_value (operator, 1, false, 1, 2);
 			break;
 		case '*':
-			set_operation_value (operator, index, 1, false, 2, 3);
+			set_operation_value (operator, 1, false, 2, 3);
 			break;	
 		case '/':
-			set_operation_value (operator, index, 1, false, 2, 4);
+			set_operation_value (operator, 1, false, 2, 4);
 			break;
 		case '^':
-			set_operation_value (operator, index, 1, false, 3, 5);
+			set_operation_value (operator, 1, false, 3, 5);
 			break;
 		case 'v':
-			set_operation_value (operator, index, 1, false, 3, 6);
+			set_operation_value (operator, 1, false, 3, 6);
 			break;
 		case 's':
-			if (compare (exp, "sqrt", *index, 4)) {
-				set_operation_value (operator, index, 4, true, 4, 7);
+			if (compare (exp, "sqrt", index, 4)) {
+				set_operation_value (operator, 4, true, 4, 7);
 				break;
 			}
 		default:
@@ -195,13 +193,13 @@ struct exptree *obtain_operation (char *exp, unsigned int *index) {
 }
 
 // see above comment
-struct exptree *obtain_operand (char *exp, unsigned int *index) {	
+struct exptree *obtain_operand (char *exp) {	
 	exptree *operand; 
 	if (!(operand = malloc (sizeof (exptree))))
 		exit (2);
 
 	operand->is_child = true;
-	operand->node.child.operand = parse_digits (exp, index);
+	operand->node.child.operand = parse_digits (exp);
 
 	return operand;
 }
@@ -211,14 +209,14 @@ struct exptree *obtain_operand (char *exp, unsigned int *index) {
  * 			or an operand or \0 and hence returns it accordingly		*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-struct exptree *node (char *exp, unsigned int *index) {
+struct exptree *node (char *exp) {
 	exptree *n;
-	if (exp[*index] == '\0' || exp[*index] == ')') 
+	if (exp[index] == '\0' || exp[index] == ')') 
 		return NULL;
-	else if (check_digits (exp, index) || exp[*index] == '(')
-		return 	n = obtain_operand (exp, index);
+	else if (check_digits (exp) || exp[index] == '(')
+		return 	n = obtain_operand (exp);
 	else
-		return n = obtain_operation (exp, index);
+		return n = obtain_operation (exp);
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*
@@ -232,7 +230,7 @@ struct exptree *node (char *exp, unsigned int *index) {
  * 											*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *uni_list (exptree *a, exptree *b, char *exp, unsigned int *index) {
+struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 	if (b->is_child) {
 		a->node.parent.rvalue = NULL;
 		a->node.parent.lvalue = b;	
@@ -243,19 +241,17 @@ struct exptree *uni_list (exptree *a, exptree *b, char *exp, unsigned int *index
 	a->node.parent.lvalue = b;
 	a->node.parent.rvalue = NULL;
 
-	return uni_list (b, node (exp, index), exp, index);
+	return uni_list (b, node (exp), exp);
 
 }
 
-struct exptree *node_pair (char *exp, unsigned int *index) {
+struct exptree *node_pair (char *exp) {
 	exptree *a, *b;	
 	
-	if(!(a = node (exp, index))) {
-	
+	if(!(a = node (exp))) {
 		return NULL;
 
-	} else if ((!a->is_child && !a->node.parent.is_unary) || (!(b = node (exp, index)))) {		// if operation is obtain first 
-													// and is not unary or the next	
+	} else if ((!a->is_child && !a->node.parent.is_unary) || (!(b = node (exp)))) {			// if operation is obtain first 
 		return a;										// there doesn't anything next
 	
 	} else if (a->is_child && !b->node.parent.is_unary) {						// in case of binary operation
@@ -272,8 +268,7 @@ struct exptree *node_pair (char *exp, unsigned int *index) {
 		return a;
 	
 	} else if (b->node.parent.is_unary && a->node.parent.is_unary) {				// when the unary operation comes
-
-		return uni_list (a, b, exp, index); 							// right after unary operation
+		return uni_list (a, b, exp);	 							// right after unary operation
 	
 	} else {
 
@@ -290,7 +285,7 @@ void insert_rvalue (exptree *value, exptree *tree) {
 	}
 }
 
-struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, exptree *old) {
+struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 	// base casses 
 	
 	if (!old && !recent) {						// when both a and b are not existing in case of "" input
@@ -329,11 +324,11 @@ struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, expt
 		recent->above = old;
 		old->node.parent.rvalue = recent;
 	
-		return make_tree(exp, index, node_pair (exp, index), recent);
+		return make_tree(exp, node_pair (exp), recent);
 	
 	} else if (old->node.parent.precedence > recent->node.parent.precedence && (old->above))  {		// in case of precedence being
 														// lower	
-		return make_tree (exp, index, recent, old->above);
+		return make_tree (exp, recent, old->above);
 	
 	} else if (old->node.parent.precedence == recent->node.parent.precedence || !(old->above)) {		// for precdence  being equall
 		if (recent->node.parent.lvalue) {								// or reaching the heighest
@@ -348,7 +343,7 @@ struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, expt
 		recent->node.parent.lvalue = old;
 		old->above = recent;
 
-		return make_tree (exp, index, node_pair (exp, index), recent);
+		return make_tree (exp, node_pair (exp), recent);
 
 	}
 }
@@ -380,7 +375,7 @@ long double calculate (exptree *tree) {
 }
 
 long double expression (char *exp) {
-	exptree *tree = top_node (make_tree(exp, &index, node_pair (exp, &index), node_pair (exp, &index)));
+	exptree *tree = top_node (make_tree(exp, node_pair (exp, &index), node_pair (exp, &index)));
 	return calculate (tree);
 }
 
