@@ -50,3 +50,4 @@ char *remove_spaces (char *exp) {
 // 4		error in obtailing operation
 // 5		error in tree calculation
 // 6		error making operational node
+// 7		empty string

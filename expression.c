@@ -183,7 +183,6 @@ struct exptree *obtain_operation (char *exp, unsigned int *index) {
 }
 
 // see above comment
-
 struct exptree *obtain_operand (char *exp, unsigned int *index) {	
 	exptree *operand; 
 	if (!(operand = malloc (sizeof (exptree))))
@@ -217,51 +216,84 @@ struct exptree *node (char *exp, unsigned int *index) {
  * 			unary then  it cojoins  a with b on their left side.		*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *node_pair (char *exp, unsigned int *index) {
-	exptree *cojoined_node, *a, *b;
-	if (!((cojoined_node = malloc (sizeof (exptree))) && (a = malloc (sizeof (exptree))) && (b = malloc (sizeof (exptree)))))
-		exit (2);
-	
-	a = node (exp, index);
-		
-	if (!(b = node (exp, index))) {
+// this function is a recursive function to join multiple uniary operators togather
+// and is used in conjuction with node pair
+
+struct exptree *uni_rec (exptree *a, exptree *b, char *exp, unsigned int *index) {
+	if (b->is_child) {
+		a->node.parent.rvalue = NULL;
+		a->node.parent.lvalue = b;	
 		return a;
-	} else if (a->is_child && !b->node.parent.is_unary) {
-		cojoined_node = b;
-		cojoined_node->node.parent.lvalue = a;
-		a->above = cojoined_node;
-		return cojoined_node;
-	} else if (b->is_child && a->node.parent.is_unary) {
-		cojoined_node = a;
-		cojoined_node->node.parent.rvalue = b;
-		b->above = cojoined_node;
-		return cojoined_node;
-	} else {
-		exit (6);
-	}	
+	}
+	a->node.parent.lvalue = b;
+	a->node.parent.rvalue = NULL;
+	return uni_rec (b, node (exp, index), exp, index);
+
 }
 
-struct exptree *make_tree (char *exp, unsigned int *index, exptree *tree, exptree *a) {
-		if (a->is_child && !tree) {
-			return a;
-		} else if (tree && a->is_child) {
-			a->above = tree;
-			tree->node.parent.rvalue = a;
-			return tree;
-		} else if (!tree && !a->is_child) {
-			return make_tree(exp, index, a, node_pair(exp, index));
-		} else if (tree && !a->is_child) {
-			if (tree->node.parent.precedence < a->node.parent.precedence) {
-				if(tree->node.parent.rvalue) {
-					tree->node.parent.rvalue->above = a;
-					a->node.parent.rvalue = tree->node.parent.rvalue;
-				}
-				tree->node.parent.rvalue = a;
-				a->above = tree;
+struct exptree *node_pair (char *exp, unsigned int *index) {
+	exptree *a, *b;	
+	a = node (exp, index);
 
-				return make_tree (exp,index, a, node_pair (exp, index));
+	//in case of no next node
+	if (!(b = node (exp, index))) {
+		return a;
+	// in case of binary operation
+	} else if (a->is_child && !b->node.parent.is_unary) {
+		b->node.parent.lvalue = a;
+		a->above = b;
+		return b;
+	// in case of a unarary operation
+	} else if (b->is_child && a->node.parent.is_unary) {
+		a->node.parent.lvalue = b;
+		a->node.parent.rvalue = NULL;
+		b->above = a;
+		return a;
+	} else if (b->node.parent.is_unary && a->node.parent.is_unary) {
+		return uni_rec (a, b, exp, index); 
+	} else {
+		exit (6);
+	}
+}
+
+
+// wouldn't it be nice to arrange these conditions to the most frequent use?
+
+struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, exptree *old) {
+	// when both a and b are not existing in case of "" input
+	if (!old && !recent) {
+		exit (6);
+	// when there is no next joined node and only number is passed
+	} else if (!recent && old->is_child) {
+		return old;
+	// when only unary operator is passed
+	} else if (!recent && !(old->is_child)){
+		return old;
+	// when the tree already exist and the last element is operand
+	} else if (old && recent->is_child) {
+		old->node.parent.rvalue = recent;
+		return old;
+	// in case of the last term being unary operator
+	} else if (old && !recent) {
+		return old;
+	// when the precendence of incoming node is greater than the node at the present
+	} else if (old->node.parent.precedence < recent->node.parent.precedence) {
+		if (old->node.parent.rvalue) {
+			// not child condition is checked because if not then it may ca-
+			// use unexpected error like node.parent not existing 
+			if (!old->node.parent.rvalue->is_child && 							\
+			   (old->node.parent.rvalue->node.parent.precedence < recent->node.parent.precedence)) {
+				return make_tree (exp, index, recent, old->node.parent.rvalue);
+			} else {
+				recent->node.parent.rvalue = old->node.parent.rvalue;
+				recent->node.parent.rvalue->above = recent;
 			}
 		}
+
+		recent->above = old;
+		old->node.parent.rvalue = recent;
+		return make_tree(exp, index, node_pair (exp, index), recent);
+	} 
 }
 
 // made on the run to test the tree
@@ -277,6 +309,6 @@ void print_nodes (exptree *tree) {
 
 void expression (char *exp) {
 	unsigned int index = 0;
-	exptree *tree = NULL;
-	print_nodes (make_tree(exp, &index, tree, node_pair(exp, &index)));
+	exptree *tree;
+	print_nodes (make_tree(exp, &index, node_pair (exp, &index), node_pair (exp, &index)));
 }
