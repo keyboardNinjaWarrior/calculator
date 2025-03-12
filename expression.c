@@ -22,7 +22,7 @@ typedef struct exptree {
 
 		struct {
 			long double *operand;
-		} child;	
+		} child;
 	} node;
 
 } exptree;
@@ -34,9 +34,13 @@ typedef struct exptree {
 
 bool check_digits (char *exp, unsigned int *index) {
 	if ((exp[*index] >= '0' && exp[*index] <= '9') || exp[*index] == '.') 
+
 		return true;
+
 	else if ((exp[*index] == '+'|| exp[*index] == '-') && !(*index - 1 >= 0 && exp[*index - 1] >= '0' && exp[*index - 1] <= '9'))
+
 		return true;
+
 	else
 	       return false;	
 }
@@ -47,12 +51,12 @@ bool check_digits (char *exp, unsigned int *index) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
 signed short int parse_sign (char *exp, unsigned int *start) {
-	if (!(exp[*start] == '-' || exp[*start] == '+')) {
+	if (!(exp[*start] == '-' || exp[*start] == '+'))
 		return 1;
-	} else if (exp[*start] == '-') {
+
+	else if (exp[*start] == '-') {
 		++(*start);
-		return -1 * parse_sign(exp, start);
-		
+		return -1 * parse_sign(exp, start);	
 	} else {
 		++(*start);
 		return 1 * parse_sign(exp, start);
@@ -76,6 +80,7 @@ long double *parse_digits (char *exp, unsigned int *start) {
 
 	if (!(operand = malloc (sizeof (long double))))
 		exit (2);
+
 	*operand = 0;
 
 	bool decimal = false;
@@ -84,13 +89,12 @@ long double *parse_digits (char *exp, unsigned int *start) {
 	for (; (exp[*start] >= '0' && exp[*start] <= '9') || exp[*start] == '.'; *start = *start + 1) {
 		if (exp[*start] != '.') {
 			*operand *= 10;
-			*operand += exp[*start] - '0';
-			if (decimal) {
+			*operand += exp[*start] - '0';	
+			if (decimal)
 				++decimal_part;
-			}
 		} else if (!decimal) {
 			decimal = true;
-		} else {
+		} else { 
 			exit (3);
 		}
 	}
@@ -179,6 +183,7 @@ struct exptree *obtain_operation (char *exp, unsigned int *index) {
 		default:
 			exit (4);
 	}
+	
 	return operator;
 }
 
@@ -188,6 +193,11 @@ struct exptree *obtain_operand (char *exp, unsigned int *index) {
 	if (!(operand = malloc (sizeof (exptree))))
 		exit (2);
 	
+	if (exp[*index] == '(') {
+		*index = *index + 1;
+		// working...
+	}
+
 	operand->is_child = true;
 	operand->node.child.operand = parse_digits (exp, index);
 
@@ -201,9 +211,9 @@ struct exptree *obtain_operand (char *exp, unsigned int *index) {
 
 struct exptree *node (char *exp, unsigned int *index) {
 	exptree *n;
-	if (exp[*index] == '\0')
+	if (exp[*index] == '\0' || exp[*index] == ')') 
 		return NULL;
-	else if (check_digits (exp, index))
+	else if (check_digits (exp, index) || exp[*index] == '(')
 		return 	n = obtain_operand (exp, index);
 	else
 		return n = obtain_operation (exp, index);
@@ -214,98 +224,136 @@ struct exptree *node (char *exp, unsigned int *index) {
  * 			which are now made inside the  function if the operation is 	*
  * 			unary  than  it  cojoines the  node b with a and if its not  	*
  * 			unary then  it cojoins  a with b on their left side.		*
+ * 											*
+ * uniary operation 	this function is a recursive function to join multiple unia-	*
+ * list			ry operators togather and is used in conjuction with node pair	*
+ * 											*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-// this function is a recursive function to join multiple uniary operators togather
-// and is used in conjuction with node pair
-
-struct exptree *uni_rec (exptree *a, exptree *b, char *exp, unsigned int *index) {
+struct exptree *uni_list (exptree *a, exptree *b, char *exp, unsigned int *index) {
 	if (b->is_child) {
 		a->node.parent.rvalue = NULL;
 		a->node.parent.lvalue = b;	
+
 		return a;
 	}
+
 	a->node.parent.lvalue = b;
 	a->node.parent.rvalue = NULL;
-	return uni_rec (b, node (exp, index), exp, index);
+
+	return uni_list (b, node (exp, index), exp, index);
 
 }
 
 struct exptree *node_pair (char *exp, unsigned int *index) {
 	exptree *a, *b;	
-	a = node (exp, index);
+	
+	if(!(a = node (exp, index))) {
+	
+		return NULL;
 
-	//in case of no next node
-	if (!(b = node (exp, index))) {
-		return a;
-	// in case of binary operation
-	} else if (a->is_child && !b->node.parent.is_unary) {
+	} else if ((!a->is_child && !a->node.parent.is_unary) || (!(b = node (exp, index)))) {		// if operation is obtain first 
+													// and is not unary or the next	
+		return a;										// there doesn't anything next
+	
+	} else if (a->is_child && !b->node.parent.is_unary) {						// in case of binary operation
 		b->node.parent.lvalue = a;
 		a->above = b;
+
 		return b;
-	// in case of a unarary operation
-	} else if (b->is_child && a->node.parent.is_unary) {
+	
+	} else if (b->is_child && a->node.parent.is_unary) {						// in case of a unarary operation
 		a->node.parent.lvalue = b;
 		a->node.parent.rvalue = NULL;
 		b->above = a;
+
 		return a;
-	} else if (b->node.parent.is_unary && a->node.parent.is_unary) {
-		return uni_rec (a, b, exp, index); 
+	
+	} else if (b->node.parent.is_unary && a->node.parent.is_unary) {				// when the unary operation comes
+
+		return uni_list (a, b, exp, index); 							// right after unary operation
+	
 	} else {
+
 		exit (6);
 	}
 }
 
-
-// wouldn't it be nice to arrange these conditions to the most frequent use?
+void insert_rvalue (exptree *value, exptree *tree) {
+	if (!(tree->node.parent.rvalue) && !tree->node.parent.is_unary) {
+		tree->node.parent.rvalue = value;
+		value->above = tree;
+	} else {
+		insert_rvalue (value, tree->node.parent.rvalue);
+	}
+}
 
 struct exptree *make_tree (char *exp, unsigned int *index, exptree *recent, exptree *old) {
-	// when both a and b are not existing in case of "" input
-	if (!old && !recent) {
-		exit (6);
-	// when there is no next joined node and only number is passed
-	} else if (!recent && old->is_child) {
+	// base casses 
+	
+	if (!old && !recent) {						// when both a and b are not existing in case of "" input
+		exit (6);						// this one is erro
+	
+	} else if (old && !recent) {					// when there is no next joined node
 		return old;
-	// when only unary operator is passed
-	} else if (!recent && !(old->is_child)){
-		return old;
-	// when the tree already exist and the last element is operand
-	} else if (old && recent->is_child) {
+	
+	} else if (old && recent->is_child) {				// when the tree already exist and the last element is operand
 		old->node.parent.rvalue = recent;
 		return old;
-	// in case of the last term being unary operator
-	} else if (old && !recent) {
+	
+	} else if (old && !recent) {					// in case of the last term being unary operator
 		return old;
-	// when the precendence of incoming node is greater than the node at the present
-	} else if (old->node.parent.precedence < recent->node.parent.precedence) {
-		if (old->node.parent.rvalue) {
-			// not child condition is checked because if not then it may ca-
-			// use unexpected error like node.parent not existing 
+
+	} else if (old->node.parent.precedence < recent->node.parent.precedence) {			// when the precendence of incoming 
+		if (old->node.parent.rvalue) {								// node is greater than the node at 
+													// the present	
+			// not child condition is checked because 
+			// if  not then  it may cause  unexpected 
+			// error like node.parent not existing
+
 			if (!old->node.parent.rvalue->is_child && 							\
-			   (old->node.parent.rvalue->node.parent.precedence < recent->node.parent.precedence)) {
+			   (old->node.parent.rvalue->node.parent.precedence < recent->node.parent.precedence)) 
 				return make_tree (exp, index, recent, old->node.parent.rvalue);
+			
+			if (!old->node.parent.rvalue->node.parent.is_unary) {				// when an operation is placed betw-
+				recent->node.parent.rvalue = old->node.parent.rvalue;			// een unary and lower precedence t-
+				recent->node.parent.rvalue->above = recent;				// he unary must come on left
 			} else {
-				recent->node.parent.rvalue = old->node.parent.rvalue;
-				recent->node.parent.rvalue->above = recent;
+				recent->node.parent.lvalue = old->node.parent.rvalue;
+				recent->node.parent.lvalue->above = recent;
 			}
-		}
+		}	
 
 		recent->above = old;
 		old->node.parent.rvalue = recent;
+	
 		return make_tree(exp, index, node_pair (exp, index), recent);
-	} 
-}
+	
+	} else if (old->node.parent.precedence > recent->node.parent.precedence && (old->above))  {		// in case of precedence being
+														// lower	
+		return make_tree (exp, index, recent, old->above);
+	
+	} else if (old->node.parent.precedence == recent->node.parent.precedence || !(old->above)) {		// for precdence  being equall
+		if (recent->node.parent.lvalue) {								// or reaching the heighest
+			insert_rvalue (recent->node.parent.lvalue, old);					// node
+		}
+		
+		if (old->above) {
+			recent->above = old->above;
+			old->above->node.parent.rvalue = recent;
+		}
 
-// made on the run to test the tree
-void print_nodes (exptree *tree) {
-	if (tree->is_child) {
-		printf ("%Lf\n", *tree->node.child.operand);
-	} else {
-		print_nodes (tree->node.parent.lvalue);
-		if (!tree->node.parent.is_unary)
-			print_nodes (tree->node.parent.rvalue);
+		recent->node.parent.lvalue = old;
+		old->above = recent;
+
+		return make_tree (exp, index, node_pair (exp, index), recent);
+
 	}
 }
+
+
+// made on the run to test the tree
+
 
 void expression (char *exp) {
 	unsigned int index = 0;
