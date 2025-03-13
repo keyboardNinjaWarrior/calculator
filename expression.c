@@ -222,6 +222,20 @@ struct exptree *obtain_operation (char *exp) {
 			else
 				exit (4);
 			break;
+		case 'e':
+			if (compare (exp, "exp", position, 3))
+				set_operation_value (operator, 3, true, 4, 17);
+			else
+				exit (4);	
+			break;
+		case 'l':
+			if (compare (exp, "ln", position, 2))
+				set_operation_value (operator, 2, true, 4, 18);
+			else if (compare (exp, "log", position, 3))
+				set_operation_value (operator, 3, true, 4, 19);
+			else
+				exit (4);
+			break;
 		default:
 			exit (4);
 	}
@@ -474,6 +488,14 @@ long double calculate (exptree *tree) {
 		return tanl (calculate (tree->node.parent.lvalue));
 	else if (tree->node.parent.operation == 16)
 		return 1 / (tanl (calculate (tree->node.parent.lvalue)));
+	else if (tree->node.parent.operation == 17)
+		return expl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 18)
+		return logl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 19)
+		return log10l (calculate (tree->node.parent.lvalue));
+	else
+		exit (8);
 }
 
 long double expression (char *exp) {
