@@ -371,8 +371,9 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 				return make_tree (exp, recent, old->node.parent.rvalue);
 			
 			if (!old->node.parent.rvalue->node.parent.is_unary && (recent->node.parent.lvalue)) {				// when an operation is placed betw-
-				recent->node.parent.rvalue = old->node.parent.rvalue;							// een unary and lower precedence t-
-				recent->node.parent.rvalue->above = recent;								// he unary must come on left
+				insert_rvalue (recent->node.parent.lvalue, old);
+				recent->node.parent.lvalue = old->node.parent.rvalue;							// een unary and lower precedence t-
+				recent->node.parent.lvalue->above = recent;								// he unary must come on left
 			} else {
 				recent->node.parent.lvalue = old->node.parent.rvalue;
 				recent->node.parent.lvalue->above = recent;
