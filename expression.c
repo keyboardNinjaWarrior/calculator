@@ -189,7 +189,7 @@ struct exptree *obtain_operation (char *exp) {
 				break;
 			}
 		case '(':
-			set_operation_value (operator, 1, false, , 3);
+			set_operation_value (operator, 1, false, 5, 3);
 			break;
 		default:
 			exit (4);
@@ -220,11 +220,15 @@ struct exptree *node (char *exp) {
 	if (exp[position] == '\0') 
 		return NULL;
 	else if (exp[position] == ')') {
+		if (exp[position + 1] >= '0' && exp[position + 1] <= '9') {
+	       		exit (7);
+		}	
+
 		++position;
 		return NULL;
 	} else if (check_digits (exp) || 											\
 		  (exp[position] == '(' && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')) || 	\
-		  (position != 0 && exp[position - 1] == '('))
+		  (position != 0 && exp[position - 1] == ')'))
 
 		return 	n = obtain_operand (exp);
 	else
@@ -242,15 +246,20 @@ struct exptree *node (char *exp) {
  * 											*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
+struct exptree *top_node (exptree *);
+
 struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 	if (b->is_child) {
 		a->node.parent.rvalue = NULL;
-		a->node.parent.lvalue = b;	
+		a->node.parent.lvalue = b;
+		b->above = a;
+		top_node (a);
 
 		return a;
 	}
 
 	a->node.parent.lvalue = b;
+	b->above = a;
 	a->node.parent.rvalue = NULL;
 
 	return uni_list (b, node (exp), exp);
@@ -261,21 +270,37 @@ struct exptree *node_pair (char *exp) {
 
 	if(!(a = node (exp))) {
 		return NULL;
-
-	} else if ((!a->is_child && !a->node.parent.is_unary) || !(b = node (exp))) {			// if operation is obtain first 
-		return a;										// there doesn't anything next
 	
+	} else if ((!a->is_child && !a->node.parent.is_unary) || !(b = node (exp))) {			// if operation is obtain first 
+		return a;										// there doesn't anything next	
+
 	} else if (a->is_child && !b->node.parent.is_unary) {						// in case of binary operation
 		b->node.parent.lvalue = a;
 		a->above = b;
 
 		return b;
 	
+	} else if (a->is_child && b->node.parent.is_unary) {						// in case of <num> <uniary>
+		exptree *c = malloc (sizeof (exptree));
+		
+		c->is_child = false;
+		c->node.parent.operation = 3;
+		c->node.parent.precedence = 2;
+		
+		c->node.parent.lvalue = a;
+		a->above = c;
+		b->node.parent.lvalue = uni_list (b, node (exp), exp);
+		b->node.parent.lvalue->above = b;		
+		c->node.parent.rvalue = b;
+		b->above = c;
+		
+		return c;
+
 	} else if (b->is_child && a->node.parent.is_unary) {						// in case of a unarary operation
 		a->node.parent.lvalue = b;
 		a->node.parent.rvalue = NULL;
 		b->above = a;
-
+		
 		return a;
 	
 	} else if (b->node.parent.is_unary && a->node.parent.is_unary) {				// when the unary operation comes
@@ -300,7 +325,7 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 	// base casses 
 	
 	if (!old && !recent) {						// when both a and b are not existing in case of "" input
-		exit (6);						// this one is erro
+		exit (6);						// this one is error
 	
 	} else if (old && !recent) {					// when there is no next joined node
 		return old;
