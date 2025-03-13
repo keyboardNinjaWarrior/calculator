@@ -219,7 +219,7 @@ struct exptree *obtain_operand (char *exp) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         
 struct exptree *node (char *exp) {
-	exptree *n;
+
 	if (exp[position] == '\0') 
 		return NULL;
 	else if (exp[position] == ')') {
@@ -230,9 +230,9 @@ struct exptree *node (char *exp) {
 	} else if (check_digits (exp) ||											\
 		  (exp[position] == '(' && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')))
 
-		return 	n = obtain_operand (exp);
+		return obtain_operand (exp);
 	else
-		return n = obtain_operation (exp);
+		return obtain_operation (exp);
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*
@@ -352,7 +352,9 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 	
 	} else if (old && recent->is_child) {				// when the tree already exist and the last element is operand
 		old->node.parent.rvalue = recent;
-		return old;
+		recent->above = old;
+
+		return make_tree (exp, node_pair (exp), old);
 	
 	} else if (old && !recent) {					// in case of the last term being unary operator
 		return old;
@@ -368,9 +370,10 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 			   (old->node.parent.rvalue->node.parent.precedence < recent->node.parent.precedence)) 
 				return make_tree (exp, recent, old->node.parent.rvalue);
 			
-			if (!old->node.parent.rvalue->node.parent.is_unary) {				// when an operation is placed betw-
-				recent->node.parent.rvalue = old->node.parent.rvalue;			// een unary and lower precedence t-
-				recent->node.parent.rvalue->above = recent;				// he unary must come on left
+			if (!old->node.parent.rvalue->node.parent.is_unary && (recent->node.parent.lvalue)) {				// when an operation is placed betw-
+				recent->node.parent.rvalue = old->node.parent.rvalue;							// een unary and lower precedence t-
+				recent->node.parent.rvalue->above = recent;								// he unary must come on left
+				
 			} else {
 				recent->node.parent.lvalue = old->node.parent.rvalue;
 				recent->node.parent.lvalue->above = recent;
@@ -400,7 +403,6 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 		old->above = recent;
 
 		return make_tree (exp, node_pair (exp), recent);
-
 	}
 }
 
