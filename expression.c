@@ -35,29 +35,18 @@ typedef struct exptree {
  * 			'+', '-', '.' or is between 0 and 9 chars			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-bool check_sign (char *exp, unsigned int I) {
-	if ((exp[position] == '+'|| exp[position] == '-') && 	\
-	   !(position != 0 && ((exp[position - 1] >= '0' && exp[position - 1] <= '9') || exp[position - 1] == ')')))
-
-		return true;
-	
-	else
-	
-		return false;
-
-}
-
 bool check_digits (char *exp) {
-	if ((exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.') 
+	if (((exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.') && (position != 0 ? exp[position - 1] != ')' : true)) 
 
 		return true;
 
-	else if (check_sign (exp, position))
+	else if ((exp[position] == '+'|| exp[position] == '-') && 	\
+		!(position != 0 && ((exp[position - 1] >= '0' && exp[position - 1] <= '9') || exp[position - 1] == ')')))
 
 		return true;
 
 	else
-	       return false;	
+	       return false;
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -199,6 +188,9 @@ struct exptree *obtain_operation (char *exp) {
 				set_operation_value (operator, 4, true, 4, 7);
 				break;
 			}
+		case '(':
+			set_operation_value (operator, 1, false, , 3);
+			break;
 		default:
 			exit (4);
 	}
@@ -230,7 +222,10 @@ struct exptree *node (char *exp) {
 	else if (exp[position] == ')') {
 		++position;
 		return NULL;
-	} else if (check_digits (exp) || (exp[position] == '(' && check_sign (exp, position - 1)))
+	} else if (check_digits (exp) || 											\
+		  (exp[position] == '(' && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')) || 	\
+		  (position != 0 && exp[position - 1] == '('))
+
 		return 	n = obtain_operand (exp);
 	else
 		return n = obtain_operation (exp);
@@ -259,7 +254,6 @@ struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 	a->node.parent.rvalue = NULL;
 
 	return uni_list (b, node (exp), exp);
-
 }
 
 struct exptree *node_pair (char *exp) {
