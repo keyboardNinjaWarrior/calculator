@@ -252,7 +252,7 @@ struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 		a->node.parent.rvalue = NULL;
 		a->node.parent.lvalue = b;
 		b->above = a;
-		top_node (a);
+		a = top_node (a);
 
 		return a;
 	}
@@ -309,7 +309,7 @@ struct exptree *node_pair (char *exp) {
 		
 		c->node.parent.lvalue = a;
 		a->above = c;
-		b->node.parent.lvalue = uni_list (b, node (exp), exp);
+		b = uni_list (b, node (exp), exp);
 		b->node.parent.lvalue->above = b;		
 		c->node.parent.rvalue = b;
 		b->above = c;
