@@ -8,7 +8,7 @@ char *remove_spaces (char *);
 int main (char argc, char *argv[]) {
 	if (argv[1][0] == '-') {
 		if (argv[1][1] == 'e') {
-			expression (remove_spaces (argv[2]));
+			printf ("%Lf\n", expression (remove_spaces (argv[2])));
 		}
 
 	} else {

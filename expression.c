@@ -1,7 +1,7 @@
 #include "lib.h"
 
 
-unsigned int index = 0;
+unsigned int position = 0;
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * the structure of tree consists of a boolian which tells if its end node or not	*  
@@ -35,12 +35,24 @@ typedef struct exptree {
  * 			'+', '-', '.' or is between 0 and 9 chars			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
+bool check_sign (char *exp, unsigned int I) {
+	if ((exp[position] == '+'|| exp[position] == '-') && 	\
+	   !(position != 0 && ((exp[position - 1] >= '0' && exp[position - 1] <= '9') || exp[position - 1] == ')')))
+
+		return true;
+	
+	else
+	
+		return false;
+
+}
+
 bool check_digits (char *exp) {
-	if ((exp[index] >= '0' && exp[index] <= '9') || exp[index] == '.') 
+	if ((exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.') 
 
 		return true;
 
-	else if ((exp[index] == '+'|| exp[index] == '-') && !(index - 1 >= 0 && exp[index - 1] >= '0' && exp[index - 1] <= '9'))
+	else if (check_sign (exp, position))
 
 		return true;
 
@@ -54,14 +66,14 @@ bool check_digits (char *exp) {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
 signed short int parse_sign (char *exp) {
-	if (!(exp[index] == '-' || exp[index] == '+')) {
+	if (!(exp[position] == '-' || exp[position] == '+')) {
 		return 1;
-	} else if (exp[index] == '-') {
-		++index;
+	} else if (exp[position] == '-') {
+		++position;
 		return -1 * parse_sign(exp);	
 	} else {
-		++index;	
-		return 1 * parse_sign(exp, ++start);
+		++position;	
+		return 1 * parse_sign(exp);
 	}
 }
 
@@ -85,17 +97,19 @@ long double *parse_digits (char *exp) {
 
 	*operand = 0;
 	
-	if (exp[index] == '(') {
-		//working
+	if (exp[position] == '(') {
+		++position;
+		*operand = sign * expression (exp);
+		return operand;
 	}
 
 	bool decimal = false;
 	unsigned int decimal_part = 0;
 
-	for (; (exp[index] >= '0' && exp[index] <= '9') || exp[index] == '.'; index++) {
-		if (exp[*start] != '.') {
+	for (; (exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.'; position++) {
+		if (exp[position] != '.') {
 			*operand *= 10;
-			*operand += exp[index] - '0';	
+			*operand += exp[position] - '0';	
 			if (decimal)
 				++decimal_part;
 		} else if (!decimal) {
@@ -107,9 +121,9 @@ long double *parse_digits (char *exp) {
 	
 	*operand = sign * (*operand / powl (10.0, (long double) decimal_part));
 	
-	switch (exp[index]) {
+	switch (exp[position]) {
 		case 'e': case 'E':
-			++index;
+			++position;
 			*operand *= powl (10.0, *parse_digits (exp));
 	}
 
@@ -128,14 +142,14 @@ void set_operation_value (exptree *operator, 				\
 			  const unsigned short int precedence,		\
 			  int value) {
 
-	index = index + steps;
+	position = position + steps;
 	operator->node.parent.precedence = precedence;
 	operator->node.parent.operation = value;
 	operator->node.parent.is_unary = uniary;
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-  * compare	this function is used to compare strings  at a given index to the 	*
+  * compare	this function is used to compare strings  at a given position to the 	*
   * 		nth terms 								*
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -161,7 +175,7 @@ struct exptree *obtain_operation (char *exp) {
 		exit (2);
 
 	operator->is_child = false;	
-	switch (exp[index]) {
+	switch (exp[position]) {
 		case '+': 
 			set_operation_value (operator, 1, false, 1, 1);
 			break;
@@ -181,7 +195,7 @@ struct exptree *obtain_operation (char *exp) {
 			set_operation_value (operator, 1, false, 3, 6);
 			break;
 		case 's':
-			if (compare (exp, "sqrt", index, 4)) {
+			if (compare (exp, "sqrt", position, 4)) {
 				set_operation_value (operator, 4, true, 4, 7);
 				break;
 			}
@@ -211,9 +225,12 @@ struct exptree *obtain_operand (char *exp) {
 
 struct exptree *node (char *exp) {
 	exptree *n;
-	if (exp[index] == '\0' || exp[index] == ')') 
+	if (exp[position] == '\0') 
 		return NULL;
-	else if (check_digits (exp) || exp[index] == '(')
+	else if (exp[position] == ')') {
+		++position;
+		return NULL;
+	} else if (check_digits (exp) || (exp[position] == '(' && check_sign (exp, position - 1)))
 		return 	n = obtain_operand (exp);
 	else
 		return n = obtain_operation (exp);
@@ -246,12 +263,12 @@ struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 }
 
 struct exptree *node_pair (char *exp) {
-	exptree *a, *b;	
-	
+	exptree *a, *b;
+
 	if(!(a = node (exp))) {
 		return NULL;
 
-	} else if ((!a->is_child && !a->node.parent.is_unary) || (!(b = node (exp)))) {			// if operation is obtain first 
+	} else if ((!a->is_child && !a->node.parent.is_unary) || !(b = node (exp))) {			// if operation is obtain first 
 		return a;										// there doesn't anything next
 	
 	} else if (a->is_child && !b->node.parent.is_unary) {						// in case of binary operation
@@ -310,7 +327,7 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 
 			if (!old->node.parent.rvalue->is_child && 							\
 			   (old->node.parent.rvalue->node.parent.precedence < recent->node.parent.precedence)) 
-				return make_tree (exp, index, recent, old->node.parent.rvalue);
+				return make_tree (exp, recent, old->node.parent.rvalue);
 			
 			if (!old->node.parent.rvalue->node.parent.is_unary) {				// when an operation is placed betw-
 				recent->node.parent.rvalue = old->node.parent.rvalue;			// een unary and lower precedence t-
@@ -375,10 +392,6 @@ long double calculate (exptree *tree) {
 }
 
 long double expression (char *exp) {
-	exptree *tree = top_node (make_tree(exp, node_pair (exp, &index), node_pair (exp, &index)));
+	exptree *tree = top_node (make_tree (exp, node_pair (exp), node_pair (exp)));
 	return calculate (tree);
-}
-
-void expression (char *exp) {
-	printf ("%Lf\n", return_expression (exp));
 }

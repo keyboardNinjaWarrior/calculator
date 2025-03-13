@@ -6,6 +6,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-void expression (char *);
+long double expression (char *);
 
 #endif
