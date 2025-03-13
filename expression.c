@@ -30,6 +30,9 @@ typedef struct exptree {
 
 } exptree;
 
+struct exptree *top_node (exptree *);
+long double calculate (exptree *);
+
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * check operand	returns true and false if the expression is starting with 	*	
  * 			'+', '-', '.' or is between 0 and 9 chars			*
@@ -185,11 +188,11 @@ struct exptree *obtain_operation (char *exp) {
 			break;
 		case 's':
 			if (compare (exp, "sqrt", position, 4)) {
-				set_operation_value (operator, 4, true, 4, 7);
+				set_operation_value (operator, 4, true, 5, 7);
 				break;
 			}
 		case '(':
-			set_operation_value (operator, 1, false, 2, 3);
+			set_operation_value (operator, 1, false, 4, 3);
 			break;
 		default:
 			exit (4);
@@ -223,7 +226,6 @@ struct exptree *node (char *exp) {
 		if (exp[position + 1] >= '0' && exp[position + 1] <= '9') {
 	       		exit (7);
 		}	
-
 		return NULL;
 	} else if (check_digits (exp) ||											\
 		  (exp[position] == '(' && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')))
@@ -244,7 +246,6 @@ struct exptree *node (char *exp) {
  * 											*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-struct exptree *top_node (exptree *);
 
 struct exptree *uni_list (exptree *a, exptree *b, char *exp) {
 	if (b->is_child) {
@@ -272,20 +273,26 @@ struct exptree *node_pair (char *exp) {
 	} else if ((!a->is_child && !a->node.parent.is_unary) || !(b = node (exp))) {			// if operation is obtain first 
 		return a;										// there doesn't anything next	
 	} else if (a->is_child && b->is_child) {
-		exptree *c; 
-		if (!(c = malloc (sizeof (exptree))))
+		exptree *c, *d; 
+		if (!((c = malloc (sizeof (exptree))) && (d = malloc (sizeof (exptree)))))
 			exit (2);
 
 		c->is_child = false;
 		c->node.parent.operation = 3;
-		c->node.parent.precedence = 2;
 		
 		c->node.parent.lvalue = a;
 		a->above = c;
 		c->node.parent.rvalue = b;
 		b->above = c;
 
-		return c;
+		d->is_child = true;
+		if (!(d->node.child.operand = malloc (sizeof (long double))))
+			exit (2);
+		
+		*d->node.child.operand = calculate (c);	
+		
+		return d;
+
 	} else if (a->is_child && !b->node.parent.is_unary) {						// in case of binary operation
 		b->node.parent.lvalue = a;
 		a->above = b;
@@ -425,6 +432,8 @@ long double calculate (exptree *tree) {
 
 long double expression (char *exp) {
 	exptree *tree = top_node (make_tree (exp, node_pair (exp), node_pair (exp)));
-	++position;
+	if (exp[position] == ')')
+		++position;
+	
 	return calculate (tree);
 }
