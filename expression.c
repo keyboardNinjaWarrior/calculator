@@ -191,9 +191,9 @@ struct exptree *obtain_operation (char *exp) {
 				set_operation_value (operator, 4, true, 5, 7);
 				break;
 			}
-		case '(':
-			set_operation_value (operator, 1, false, 4, 3);
-			break;
+		//case '(':
+		//	set_operation_value (operator, 1, false, 4, 3);
+		//	break;
 		default:
 			exit (4);
 	}
@@ -228,7 +228,7 @@ struct exptree *node (char *exp) {
 		}	
 		return NULL;
 	} else if (check_digits (exp) ||											\
-		  (exp[position] == '(' && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')))
+		  (exp[position] == '('))// && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')))
 
 		return obtain_operand (exp);
 	else
