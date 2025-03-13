@@ -187,13 +187,41 @@ struct exptree *obtain_operation (char *exp) {
 			set_operation_value (operator, 1, false, 3, 6);
 			break;
 		case 's':
-			if (compare (exp, "sqrt", position, 4)) {
-				set_operation_value (operator, 4, true, 5, 7);
-				break;
-			}
-		//case '(':
-		//	set_operation_value (operator, 1, false, 4, 3);
-		//	break;
+			if (compare (exp, "sqrt", position, 4)) 
+				set_operation_value (operator, 4, true, 4, 7);
+			else if (compare (exp, "sin", position, 3))
+				set_operation_value (operator, 3, true, 4, 8);
+			else if (compare (exp, "sec", position, 3))
+				set_operation_value (operator, 3, true, 4, 9);
+			else
+				exit (4);
+			break;
+		case 'c':
+			if (compare (exp, "cos", position, 3))
+				set_operation_value (operator, 3, true, 4, 10);
+			else if (compare (exp, "csc", position, 3))
+				set_operation_value (operator, 3, true, 4, 11);
+			else if (compare (exp, "cot", position, 3))
+				set_operation_value (operator, 3, true, 4, 16);
+			else 
+				exit (4);
+			break;
+		case 'a':
+			if (compare (exp, "acos", position, 4))
+				set_operation_value (operator, 4, true, 4, 12);
+			else if (compare (exp, "asin", position, 4))
+				set_operation_value (operator, 4, true, 4, 13);
+			else if (compare (exp, "atan", position, 4))
+				set_operation_value (operator, 4, true, 4, 14);
+			else
+				exit (4);
+			break;
+		case 't':
+			if (compare (exp, "tan", position, 3))
+				set_operation_value (operator, 3, true, 4, 15);
+			else
+				exit (4);
+			break;
 		default:
 			exit (4);
 	}
@@ -227,9 +255,7 @@ struct exptree *node (char *exp) {
 	       		exit (7);
 		}	
 		return NULL;
-	} else if (check_digits (exp) ||											\
-		  (exp[position] == '('))// && !(position != 0 && exp[position - 1] >= '0' && exp[position - 1] <= '9')))
-
+	} else if (check_digits (exp) || (exp[position] == '('))
 		return obtain_operand (exp);
 	else
 		return obtain_operation (exp);
@@ -430,6 +456,24 @@ long double calculate (exptree *tree) {
 		return powl (calculate (tree->node.parent.lvalue), 1 / calculate (tree->node.parent.rvalue));
 	else if (tree->node.parent.operation == 7)
 		return sqrtl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 8)
+		return sinl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 9)
+		return 1 / (cosl (calculate (tree->node.parent.lvalue)));
+	else if (tree->node.parent.operation == 10)
+		return cosl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 11)
+		return 1 / (sinl (calculate (tree->node.parent.lvalue)));
+	else if (tree->node.parent.operation == 12)
+		return acosl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 13)
+		return asinl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 14)
+		return atanl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 15)
+		return tanl (calculate (tree->node.parent.lvalue));
+	else if (tree->node.parent.operation == 16)
+		return 1 / (tanl (calculate (tree->node.parent.lvalue)));
 }
 
 long double expression (char *exp) {
