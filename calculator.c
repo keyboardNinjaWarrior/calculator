@@ -5,7 +5,7 @@ char *remove_spaces (char *);
 // -	tag init
 // e	expression
 
-int main (char argc, char *argv[]) {
+int main (int argc, char *argv[]) {
 	if (argv[1][0] == '-') {
 		if (argv[1][1] == 'e') {
 			printf ("%Lf\n", expression (remove_spaces (argv[2])));

@@ -5,10 +5,12 @@ unsigned int position = 0;
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * the structure of tree consists of a boolian which tells if its end node or not	*  
- * and an above pointer to itself for pointing nodes that are up. It the consists	*   
- * of union of end and the rest of the nodes. the other operational nodes have an 	*
- * rvalue and an lvalue, the operational integer, its precedence and boolian det-	*
- * ermining if its a unary operator or not.						*
+ * and an above pointer to  itself for  pointing nodes that is its parent. It the 	*
+ * consists of union of end and the two types nodes. one is used to store inform-	*
+ * ation of  the operation and  the other store  the opointer to the operand. the 	*
+ * operation  is either uniary  and binary for binary operations  the pointers to 	*
+ * its childern are stored in lvalue and rvalue and for unary, only in its lvalue. 	*
+ * i wonder if its more effecient?							*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 typedef struct exptree {
@@ -34,27 +36,28 @@ struct exptree *top_node (exptree *);
 long double calculate (exptree *);
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * check operand	returns true and false if the expression is starting with 	*	
- * 			'+', '-', '.' or is between 0 and 9 chars			*
+ * check operand	returns  true if the expression  is starting with a number. It 	*
+ * 			also checks if the number comes right after enclosing bracket.	*
+ * 			returns false in that case. it also checks the sign and either	*
+ * 			is a operator or not in its second condition			*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 bool check_digits (char *exp) {
-	if (((exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.') && (position != 0 ? exp[position - 1] != ')' : true)) 
+	if (((exp[position] >= '0' && exp[position] <= '9') || exp[position] == '.') && (position != 0 ? exp[position - 1] != ')' : true))							// also see if the number is fol-
+		return true;																					//lowed by a bracket 
 
-		return true;
 
-	else if ((exp[position] == '+'|| exp[position] == '-') && 	\
-		!(position != 0 && ((exp[position - 1] >= '0' && exp[position - 1] <= '9') || exp[position - 1] == ')')))
+	else if ((exp[position] == '+'|| exp[position] == '-') && !(position != 0 && ((exp[position - 1] >= '0' && exp[position - 1] <= '9') || exp[position - 1] == ')'))) 			// is it + or - and is the number
+																								// coming  before  it is either a
+		return true;																					// a number or or a closing brac-
+	else																							// ket
 
-		return true;
-
-	else
 	       return false;
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * parse sign:		checks for + and negative signs through recursion and then	* 
- * 			returns +1 and -1 respectively.					*
+ * parse sign:		if at given position, there is + or - it calls itself recursiv- *
+ * 			ely and multiplies itself with 1 or -1 				*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
 signed short int parse_sign (char *exp) {
@@ -71,13 +74,14 @@ signed short int parse_sign (char *exp) {
 
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * parse digits:	It takes an expression and starting point. Then it allocates 	*
- * 			memory for storing the long double. It loops over the chara-	*
- * 			cters and adds them to the  variable and multiplies  it with 	*
- * 			ten.  Meanwhile it  looks for the  decimal and if its there, 	*
- * 			it starts  adding the digits  after the decimal. At the  end	*
- * 			it divides the number with  it. It also evaluates expression	*
- * 			given in scientific notation through recursion.			*
+ * parse digits:	it takes an expression. then it allocates memory for storing 	*
+ * 			the long double. it loops over  the characters and adds them 	*
+ * 			to the  variable  and multiplies  it with ten.  meanwhile it  	*
+ * 			looks for the decimal and if its there, it starts adding the 	*
+ * 			digits  after the decimal. at the end it divides  the number 	*
+ * 			with  it. it also  evaluates expression given in  scientific 	*
+ * 			notation through recursion. if there comes bracket it calles	*
+ * 			the expression recursively.					*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 long double *parse_digits (char *exp) {
@@ -125,14 +129,12 @@ long double *parse_digits (char *exp) {
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * set operation value	this function takes the parameters that needed to assigned	* 
  * 			to operator and then assign to it.  since a pointer to the 	*
- * 			exptree is passed the changes happen in real time.		*
+ * 			exptree is passed the changes happen in real time. it been	*
+ * 			called again and again and hence deserves a seperate fuct-	*
+ * 			ion.								*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
-void set_operation_value (exptree *operator, 				\
-			  const unsigned short int steps, 		\
-			  const bool uniary,	 			\
-			  const unsigned short int precedence,		\
-			  int value) {
+void set_operation_value (exptree *operator, const unsigned short int steps, const bool uniary,	const unsigned short int precedence, int value) {
 
 	position = position + steps;
 	operator->node.parent.precedence = precedence;
@@ -141,8 +143,9 @@ void set_operation_value (exptree *operator, 				\
 }
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-  * compare	this function is used to compare strings  at a given position to the 	*
-  * 		nth terms 								*
+  * compare	this function is used to compare strings at a given position to the 	*
+  * 		'end'th terms. takes position as I.  return true if same and  false 	*
+  * 		if not									*
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 bool compare (char *exp, char *str, unsigned short int I, unsigned short int end) {
@@ -152,12 +155,13 @@ bool compare (char *exp, char *str, unsigned short int I, unsigned short int end
 	return true;
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * obtain operand &	Both first check if the syntax is valid and the 	*
- * obtain operation	suitable characters exist at their positions. Then 	*
- * 			they parse them and stor them in exptree node at 	*
- * 			its relative positions.					*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * obtain operation		it returns a pointer to exptree containing relevant	*
+ * 				information  to it. the operations implemented  are	*
+ * 				addition, subtraction, division, multiplication, p-	*
+ * 				ower, root,  trignomatic functions, their inverses,	*
+ * 				natural and common log.					*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct exptree *obtain_operation (char *exp) {
 	struct exptree *operator;
@@ -243,7 +247,12 @@ struct exptree *obtain_operation (char *exp) {
 	return operator;
 }
 
-// see above comment
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * obtain operand		it returns a pointer to exptree containing operand node	*
+ * 				by calling parse digits function.			*
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 struct exptree *obtain_operand (char *exp) {	
 	exptree *operand; 
 	if (!(operand = malloc (sizeof (exptree))))
@@ -257,15 +266,15 @@ struct exptree *obtain_operand (char *exp) {
 
  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * node			as the name sugguests it checks if the node is an digit		*
- * 			or an operand or \0 and hence returns it accordingly		*
+ * 			or an operand or \0 or a bracket.				*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         
 struct exptree *node (char *exp) {
 
 	if (exp[position] == '\0') 
 		return NULL;
-	else if (exp[position] == ')') {
-		if (exp[position + 1] >= '0' && exp[position + 1] <= '9') {
+	else if (exp[position] == ')') {								// checks if the bracket is followed by
+		if (exp[position + 1] >= '0' && exp[position + 1] <= '9') {				// a number
 	       		exit (7);
 		}	
 		return NULL;
@@ -279,7 +288,10 @@ struct exptree *node (char *exp) {
  * node pair		this  function  makes a pointer and  then compare two nodes	*
  * 			which are now made inside the  function if the operation is 	*
  * 			unary  than  it  cojoines the  node b with a and if its not  	*
- * 			unary then  it cojoins  a with b on their left side.		*
+ * 			unary then  it  cojoins a with b  on their left side. or if	* 
+ * 			both are numbers then they are multiplied togather. it also	*
+ * 			handles  if  the  number  has  come  first  and  then unary 	*
+ * 			operator							*
  * 											*
  * uniary operation 	this function is a recursive function to join multiple unia-	*
  * list			ry operators togather and is used in conjuction with node pair	*
@@ -372,6 +384,14 @@ struct exptree *node_pair (char *exp) {
 	}
 }
 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*
+  * insert rvalue	inserts the value at the end the tree to the very right		*
+
+  * make tree		it compares the opertions togather and then inserts the		*
+  * 			nodes accordingly. the description are given by the co-		*
+  * 			ditions								*
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*/
+
 void insert_rvalue (exptree *value, exptree *tree) {
 	if (!(tree->node.parent.rvalue) && !tree->node.parent.is_unary) {
 		tree->node.parent.rvalue = value;
@@ -446,12 +466,21 @@ struct exptree *make_tree (char *exp, exptree *recent, exptree *old) {
 	}
 }
 
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	*
+  * top node		goes to the top of the tree and returns the top node to it 	*
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */	
+
 struct exptree *top_node (exptree *tree) {
 	if (!tree->above)
 		return tree;
 	else
 		return top_node (tree->above);
 }
+
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *	
+  *  calculate 	recursively evaluate the tree... 					*
+  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 long double calculate (exptree *tree) {
 	if (tree->is_child) 
