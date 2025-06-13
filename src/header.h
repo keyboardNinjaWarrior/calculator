@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#define SYNTX_ERR 1
+
 extern char *expression;
 
 void parse_number (void);
