@@ -1,8 +1,8 @@
 #include "header.h"
 
 int main (int argc, char *argv[]) {
-	char *number = argv[1];
-	
+	char *expression = argv[0];
+
 	parse_number ();	
 
 	return 0;

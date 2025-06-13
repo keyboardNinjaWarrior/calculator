@@ -1,5 +1,10 @@
 #include "header.h"
+#include <stdbool.h>
 
-void parse_number (void) {
-	printf ("In the parse_number function\n");
+bool isDigit () {
+	return true;
+}
+
+void parse_number (void) {	
+	printf("%d\n", expression);
 }
