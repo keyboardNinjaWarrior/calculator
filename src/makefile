@@ -1,5 +1,9 @@
-para = 10.25
+p =
+flags = -g -lm -o
+cc = gcc
+files = main.c expression.c
+exe = calc
 
 main:
-	gcc main.c expression.c -o calc -g
-	./calc $(para)
+	$(cc) $(files) $(flags) $(exe)
+	./$(exe) $(p)
