@@ -4,9 +4,10 @@
 #include <stdio.h>
 
 #define SYNTX_ERR 1
+#define NUMBER 	long double
 
 extern char *expression;
 
-void parse_number (void);
+NUMBER parse_number (void);
 
 #endif

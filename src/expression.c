@@ -2,8 +2,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
-#define NUMBER 	long double
 #define LONGINT uint64_t
 
 LONGINT I = 0;
@@ -13,23 +13,12 @@ bool is_digit (void)
 	return (expression[I] >= '0' && expression[I] <= '9');
 }
 
-LONGINT power (LONGINT i)
-{
-	LONGINT power = 10;
-	while (i != 0) {
-		power *= 10;
-		--i;
-
-	}
-
-	return power;
-}
-
-void parse_number (void) 
+NUMBER parse_number (void) 
 {
 	NUMBER number = 0;
 	bool decimal = false;
 	LONGINT decimalPosition;
+	static bool exponent = false;
 
 	while (true) 
 	{
@@ -37,7 +26,7 @@ void parse_number (void)
 		{
 			if (decimal) 
 			{
-				number += (expression[I++] - '0') / (NUMBER) (power (decimalPosition - 1));
+				number += (expression[I++] - '0') / powl (10, decimalPosition);
 				++decimalPosition;
 			}
 			else
@@ -49,7 +38,7 @@ void parse_number (void)
 		{
 			if (decimal)
 			{
-				fprintf (stderr, "Syntax Error: More than one decimal.");
+				fprintf (stderr, "Syntax Error: More than one decimal.\n");
 				exit (SYNTX_ERR);
 			}
 			else
@@ -58,12 +47,26 @@ void parse_number (void)
 				++I;
 				decimalPosition = 1;
 			}
-		} 
+		}
+		else if (expression[I] == 'e' || expression[I] == 'E')
+		{
+			if (! exponent)
+			{
+				exponent = true;
+				++I;
+				number = number * pow (10, parse_number ());
+			}
+			else
+			{
+				fprintf (stderr, "Syntax Error: More than one exponents.\n");
+				exit (SYNTX_ERR);
+			}
+		}
 		else
 		{
 			break;
 		}
 	}
 	
-	printf("parse_number: %Lf\n", number);
+	return number;
 }
