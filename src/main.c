@@ -14,8 +14,7 @@ char *expression;
 LONGINT I = 0;
 
 // OPER_VAL defines what operations are being used and PRE-
-// CEDENCE defines when the operation is going to be execu-
-// ted. prioritied are reversed.
+// CEDENCE defines when the operation is going to be execu- ted. prioritied are reversed.
 enum OPER_VAL {SUM, SUB, MUL, DIV, NEGATIVE, POSITIVE};
 enum PRECEDENCE {THIRD, SECOND, FIRST};
 
@@ -25,6 +24,23 @@ typedef struct
 	SMALINT oper_val;
 	SMALINT precedence;
 } Operation;
+
+typedef struct
+{
+    NUMBER *first_num;
+    NUMBER *sec_num;
+} Operand;
+
+typedef struct Node
+{
+    struct Node *Uper_Node;
+    bool is_operand;
+    union
+    {
+        Operation *Operation_Node;
+        Operand *Operand_Node;
+    } Branch;
+} Node;
 
 bool is_digit (void) 
 {
@@ -96,30 +112,30 @@ NUMBER parse_number (void)
 // allocates Operation and assign respective values for each
 // respective operations. there are two types of operations:
 // binary and unary operations
-Operation parse_binary_operation (void) 
+Operation *parse_binary_operation (void) 
 {
-	Operation x;
+	Operation *x = (Operation *) malloc (sizeof (Operation));
 	switch (expression[I])
 	{
 		case '+':
-			x.is_binary = true;
-			x.oper_val = SUM;
-			x.precedence= FIRST;
+			x->is_binary = true;
+			x->oper_val = SUM;
+			x->precedence= FIRST;
 			break;
 		case '-':
-			x.is_binary = true;
-			x.oper_val = SUB;
-			x.precedence = FIRST;
+			x->is_binary = true;
+			x->oper_val = SUB;
+			x->precedence = FIRST;
 			break;
 		case '*':
-			x.is_binary = true;
-			x.oper_val = MUL;
-			x.precedence = SECOND;
+			x->is_binary = true;
+			x->oper_val = MUL;
+			x->precedence = SECOND;
 			break;
 		case '/':
-			x.is_binary = true;
-			x.oper_val = DIV;
-			x.precedence = SECOND; 
+			x->is_binary = true;
+			x->oper_val = DIV;
+			x->precedence = SECOND; 
 			break;
 	}
 
@@ -127,28 +143,58 @@ Operation parse_binary_operation (void)
 	return x;
 }
 
-Operation parse_unary_operation (void)
+bool is_unary_operation (void)
 {
-	Operation x; 
+    switch (expression [I])
+    {
+        case '+': case '-':
+            return true;
+        default:
+            return false;
+    }
+}
+
+Operation *parse_unary_operation (void)
+{
+	Operation *x = (Operation *) malloc (sizeof (Operation)); 
 	
     switch (expression[I])
 	{
 		case '+':
-            x.is_binary = false;
-            x.precedence = THIRD;
-            x.oper_val = POSITIVE;
+            x->is_binary = false;
+            x->precedence = THIRD;
+            x->oper_val = POSITIVE;
             break;
         case '-':
-            x.is_binary = false;
-            x.precedence = THIRD;
+            x->is_binary = false;
+            x->precedence = THIRD;
             x->oper_val = NEGATIVE;
             break; 
 	}
 
+    ++I;
     return x;
 }
 
-
+void make_tree (void)
+{
+    bool first_parse = true;
+    while (first_parse)
+    {
+        if (expression[I] == ' ')
+        {
+            ++I;
+        }
+        else if (is_digit ())
+        {
+            continue;
+        }
+        else if (is_unary_operation ())
+        {
+            continue;
+        }
+    }
+}
 
 int main (int argc, char *argv[]) {
 	expression = argv[1];
