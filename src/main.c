@@ -120,11 +120,6 @@ Operation *parse_binary_operation (void)
 			x->oper_val = DIV;
 			x->precedence = SECOND; 
 			break;
-		default:
-			free (x);
-			fprintf (stderr, "Unkown Operation.");
-			exit (SYNTX_ERR);
-			break;
 	}
 
 	++I;
@@ -138,13 +133,13 @@ void parse_unary_operation (void)
     switch (expression[I])
 	{
 		case '+':
-            x->is_bianry = false;
-            x->perecedence = THIRD;
+            x->is_binary = false;
+            x->precedence = THIRD;
             x->oper_val = POSITIVE;
             break;
         case '-':
-            x->is_bianry = false;
-            x->perecedence = THIRD;
+            x->is_binary = false;
+            x->precedence = THIRD;
             x->oper_val = NEGATIVE;
             break; 
 	}
