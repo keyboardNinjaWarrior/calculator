@@ -96,30 +96,30 @@ NUMBER parse_number (void)
 // allocates Operation and assign respective values for each
 // respective operations. there are two types of operations:
 // binary and unary operations
-Operation *parse_binary_operation (void) 
+Operation parse_binary_operation (void) 
 {
-	Operation *x = (Operation *) malloc (sizeof (Operation));
+	Operation x;
 	switch (expression[I])
 	{
 		case '+':
-			x->is_binary = true;
-			x->oper_val = SUM;
-			x->precedence= FIRST;
+			x.is_binary = true;
+			x.oper_val = SUM;
+			x.precedence= FIRST;
 			break;
 		case '-':
-			x->is_binary = true;
-			x->oper_val = SUB;
-			x->precedence = FIRST;
+			x.is_binary = true;
+			x.oper_val = SUB;
+			x.precedence = FIRST;
 			break;
 		case '*':
-			x->is_binary = true;
-			x->oper_val = MUL;
-			x->precedence = SECOND;
+			x.is_binary = true;
+			x.oper_val = MUL;
+			x.precedence = SECOND;
 			break;
 		case '/':
-			x->is_binary = true;
-			x->oper_val = DIV;
-			x->precedence = SECOND; 
+			x.is_binary = true;
+			x.oper_val = DIV;
+			x.precedence = SECOND; 
 			break;
 	}
 
@@ -127,20 +127,20 @@ Operation *parse_binary_operation (void)
 	return x;
 }
 
-Operation *parse_unary_operation (void)
+Operation parse_unary_operation (void)
 {
-	Operation *x = (Operation *) malloc (sizeof (Operation));
+	Operation x; 
 	
     switch (expression[I])
 	{
 		case '+':
-            x->is_binary = false;
-            x->precedence = THIRD;
-            x->oper_val = POSITIVE;
+            x.is_binary = false;
+            x.precedence = THIRD;
+            x.oper_val = POSITIVE;
             break;
         case '-':
-            x->is_binary = false;
-            x->precedence = THIRD;
+            x.is_binary = false;
+            x.precedence = THIRD;
             x->oper_val = NEGATIVE;
             break; 
 	}
