@@ -94,7 +94,8 @@ NUMBER parse_number (void)
 }
 
 // allocates Operation and assign respective values for each
-// respective operations
+// respective operations. there are two types of operations:
+// binary and unary operations
 Operation *parse_binary_operation (void) 
 {
 	Operation *x = (Operation *) malloc (sizeof (Operation));
@@ -126,7 +127,7 @@ Operation *parse_binary_operation (void)
 	return x;
 }
 
-void parse_unary_operation (void)
+Operation *parse_unary_operation (void)
 {
 	Operation *x = (Operation *) malloc (sizeof (Operation));
 	
@@ -143,7 +144,11 @@ void parse_unary_operation (void)
             x->oper_val = NEGATIVE;
             break; 
 	}
+
+    return x;
 }
+
+
 
 int main (int argc, char *argv[]) {
 	expression = argv[1];
