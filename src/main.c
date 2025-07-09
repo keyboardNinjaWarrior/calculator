@@ -176,30 +176,30 @@ Operation *parse_unary_operation (void)
     return x;
 }
 
-void make_tree (void)
+Node *make_tree (void)
 {
-    bool first_parse = true;
-    while (first_parse)
+    static bool first_parse = true;
+    Node *node = (Node *) malloc (sizeof (Node));
+    
+    if (first_parse)
     {
-        if (expression[I] == ' ')
+        if (is_digit)
         {
-            ++I;
-        }
-        else if (is_digit ())
-        {
-            continue;
-        }
-        else if (is_unary_operation ())
-        {
-            continue;
+            node->is_operand = true;
+            node->Branch.Operand_Node = (Operand *) malloc (sizeof (Operand));
+            node->Branch.Operand_Node->first_num = (NUMBER *) malloc (sizeof (NUMBER));
+            *(node->Branch.Operand_Node->first_num) = parse_number ();
         }
     }
+
+    return node;
+
 }
 
 int main (int argc, char *argv[]) {
 	expression = argv[1];
 
-	printf ("%d\n", (parse_binary_operation ()->oper_val));
+	printf ("%Lf\n", *(make_tree ()->Branch.Operand_Node->first_num));
 
 	return 0;
 }
