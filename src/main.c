@@ -86,7 +86,7 @@ NUMBER parse_number (void)
 	return number;
 }
 
-void parse_binary_operation (void) 
+Operation *parse_binary_operation (void) 
 {
 	Operation * x = (Operation *) malloc (sizeof (Operation));
 	switch (expression[I])
@@ -111,12 +111,14 @@ void parse_binary_operation (void)
 			x->oper_val = DIV;
 			x->precedence = FIRST; 
 			break;
-		case default:
+		default:
 			free (x);
 			fprintf (stderr, "Unkown Operation.");
 			exit (SYNTX_ERR);
 			break;
 	}
+
+	return x;
 }
 
 int main (int argc, char *argv[]) {
