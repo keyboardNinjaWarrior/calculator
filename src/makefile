@@ -1,7 +1,7 @@
 p =
 flags = -g -lm -o
 cc = gcc
-files = main.c expression.c
+files = main.c
 exe = calc
 
 main:

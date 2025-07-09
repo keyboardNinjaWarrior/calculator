@@ -8,10 +8,20 @@
 
 #define NUMBER 	long double
 #define LONGINT uint64_t
+#define SMALINT uint8_t
 
 char *expression;
-NUMBER parse_number (void);
 LONGINT I = 0;
+
+enum OPER_VAL {SUM, SUB, MUL, DIV};
+enum PRECEDENCE {SECOND, FIRST};
+
+typedef struct
+{
+	bool is_binary;
+	SMALINT oper_val;
+	SMALINT precedence;
+} Operation;
 
 bool is_digit (void) 
 {
@@ -76,14 +86,31 @@ NUMBER parse_number (void)
 	return number;
 }
 
-void parse_operation (void) 
+void parse_binary_operation (void) 
 {
+	Operation x;
 	switch (expression[I])
 	{
 		case '+':
+			x.is_binary = true;
+			x.oper_val = SUM;
+			x.precedence= SECOND;
+			break;
 		case '-':
+			x.is_binary = true;
+			x.oper_val = SUB;
+			x.precedence = SECOND;
+			break;
 		case '*':
+			x.is_binary = true;
+			x.oper_val = MUL;
+			x.precedence = FIRST;
+			break;
 		case '/':
+			x.is_binary = true;
+			x.oper_val = DIV;
+			x.precedence = FIRST; 
+			break;
 	}	
 }
 
