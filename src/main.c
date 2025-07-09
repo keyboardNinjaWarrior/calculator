@@ -4,11 +4,11 @@
 #include <math.h>
 #include <stdio.h>
 
-#define SYNTX_ERR 1
-
-#define NUMBER 	long double
-#define LONGINT uint64_t
-#define SMALINT uint8_t
+#define SYNTX_ERR   1
+#define MEM_FAIL    2
+#define NUMBER 	    long double
+#define LONGINT     uint64_t
+#define SMALINT     uint8_t
 
 char *expression;
 LONGINT I = 0;
@@ -33,13 +33,14 @@ typedef struct
 
 typedef struct Node
 {
-    struct Node *Uper_Node;
+    struct Node *Upper_Node;
     bool is_operand;
     union
     {
         Operation *Operation_Node;
         Operand *Operand_Node;
     } Branch;
+    struct Node *Lower_Node;
 } Node;
 
 bool is_digit (void) 
@@ -51,7 +52,10 @@ bool is_digit (void)
 // mal point has been passed or not and run two different a-
 // lgorithms in each case. It also supports 'e' and 'E' and
 // recurses the function once if it's found.
-NUMBER parse_number (void) 
+
+// parse_number should be used as it return the pointer to 
+// the number
+NUMBER initial_parse_number (void) 
 {
 	NUMBER number = 0;
 	bool decimal = false;
@@ -76,7 +80,7 @@ NUMBER parse_number (void)
 		{
 			if (decimal)
 			{
-				fprintf (stderr, "Syntax Error: More than one decimal.\n");
+				fprintf (stderr, "initial_parse_number:\nSyntax Error: More than one decimal.\n");
 				exit (SYNTX_ERR);
 			}
 			else
@@ -92,11 +96,11 @@ NUMBER parse_number (void)
 			{
 				exponent = true;
 				++I;
-				number = number * pow (10, parse_number ());
+				number = number * pow (10, initial_parse_number ());
 			}
 			else
 			{
-				fprintf (stderr, "Syntax Error: More than one exponent.\n");
+				fprintf (stderr, "intial_parse_number:\nSyntax Error: More than one exponent.\n");
 				exit (SYNTX_ERR);
 			}
 		}
@@ -109,12 +113,41 @@ NUMBER parse_number (void)
 	return number;
 }
 
+NUMBER *parse_number (void)
+{
+    NUMBER *number = (NUMBER *) malloc (sizeof (NUMBER));
+    if (! number)
+    {
+        fprintf (stderr, "parse_number: number:\nMemory allocation failed.");
+        exit (MEM_FAIL);
+    }
+    *number = initial_parse_number ();
+    return number;
+}
+
 // allocates Operation and assign respective values for each
 // respective operations. there are two types of operations:
 // binary and unary operations
+bool is_binary_operation (void)
+{
+    switch (expression [I])
+    {
+        case '+': case '-': case '*': case '/':
+            return true;
+        default:
+            return false;
+    }
+}
+
 Operation *parse_binary_operation (void) 
 {
 	Operation *x = (Operation *) malloc (sizeof (Operation));
+    if (! x)
+    {
+        fprintf (stderr, "parse_binary_operation: x:\nMemory allocation failed.");
+        exit (MEM_FAIL);
+    }
+
 	switch (expression[I])
 	{
 		case '+':
@@ -157,6 +190,11 @@ bool is_unary_operation (void)
 Operation *parse_unary_operation (void)
 {
 	Operation *x = (Operation *) malloc (sizeof (Operation)); 
+    if (! x)
+    {
+        fprintf (stderr, "parse_unary_operation: x:\nMemory allocation failed.");
+        exit (MEM_FAIL);
+    }
 	
     switch (expression[I])
 	{
@@ -178,22 +216,69 @@ Operation *parse_unary_operation (void)
 
 Node *make_tree (void)
 {
-    static bool first_parse = true;
-    Node *node = (Node *) malloc (sizeof (Node));
-    
-    if (first_parse)
+    static SMALINT state = 0;
+    Node *node;
+    Node *previous_node;
+
+    while (expression [I] != '\n')
     {
-        if (is_digit)
+    	node = (Node *) malloc (sizeof (Node));
+        if (! node)
         {
-            node->is_operand = true;
-            node->Branch.Operand_Node = (Operand *) malloc (sizeof (Operand));
-            node->Branch.Operand_Node->first_num = (NUMBER *) malloc (sizeof (NUMBER));
-            *(node->Branch.Operand_Node->first_num) = parse_number ();
+            fprintf (stderr, "make_tree:node:\nMemory allocation failed.");
+            exit (MEM_FAIL);
         }
+
+    	switch (state)
+    	{
+    	    case 0:                                            // initial state
+    	        if (is_digit ())
+    	        {
+    	            node->is_operand = true;
+    	            node->Branch.Operand_Node = (Operand *) malloc (sizeof (Operand));
+    	            node->Branch.Operand_Node->first_num = parse_number ();
+
+    	            state = 1;
+    	        }
+    	        else if (is_unary_operation ())
+    	        {
+    	            node->is_operand = false;
+    	            node->Branch.Operation_Node = parse_unary_operation ();
+
+    	            state = 2;
+    	        }
+    	        else if (expression [I] == ' ')
+    	        {
+    	            ++I;
+    	        }
+    	        else
+    	        {
+    	            fprintf (stderr, "make_tree: case 0:\n Syntax error. The string cannot be parsed.");
+    	            exit (SYNTX_ERR);
+    	        }
+
+    	        break;
+    	    case 1:                                            // in case of number
+    	        if (is_binary_operation ())
+    	        {
+    	            node->is_operand = false;
+    	            node->Branch.Operation_Node = parse_binary_operation ();
+                    // loop to adjust the binary operation :(
+    	            state = 3;
+    	        }
+    	        else
+    	        {
+    	            fprintf (stderr, "make_tree: case 1:\nSyntax Error. The string cannot be parssed.");
+    	            exit (SYNTX_ERR);
+    	        }
+    	        
+    	        break;
+    	}
+        
+        previous_node = node;
     }
 
     return node;
-
 }
 
 int main (int argc, char *argv[]) {
