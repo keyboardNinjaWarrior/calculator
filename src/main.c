@@ -88,30 +88,35 @@ NUMBER parse_number (void)
 
 void parse_binary_operation (void) 
 {
-	Operation x;
+	Operation * x = (Operation *) malloc (sizeof (Operation));
 	switch (expression[I])
 	{
 		case '+':
-			x.is_binary = true;
-			x.oper_val = SUM;
-			x.precedence= SECOND;
+			x->is_binary = true;
+			x->oper_val = SUM;
+			x->precedence= SECOND;
 			break;
 		case '-':
-			x.is_binary = true;
-			x.oper_val = SUB;
-			x.precedence = SECOND;
+			x->is_binary = true;
+			x->oper_val = SUB;
+			x->precedence = SECOND;
 			break;
 		case '*':
-			x.is_binary = true;
-			x.oper_val = MUL;
-			x.precedence = FIRST;
+			x->is_binary = true;
+			x->oper_val = MUL;
+			x->precedence = FIRST;
 			break;
 		case '/':
-			x.is_binary = true;
-			x.oper_val = DIV;
-			x.precedence = FIRST; 
+			x->is_binary = true;
+			x->oper_val = DIV;
+			x->precedence = FIRST; 
 			break;
-	}	
+		case default:
+			free (x);
+			fprintf (stderr, "Unkown Operation.");
+			exit (SYNTX_ERR);
+			break;
+	}
 }
 
 int main (int argc, char *argv[]) {
