@@ -13,8 +13,11 @@
 char *expression;
 LONGINT I = 0;
 
-enum OPER_VAL {SUM, SUB, MUL, DIV};
-enum PRECEDENCE {SECOND, FIRST};
+// OPER_VAL defines what operations are being used and PRE-
+// CEDENCE defines when the operation is going to be execu-
+// ted. prioritied are reversed.
+enum OPER_VAL {SUM, SUB, MUL, DIV, NEGATIVE, POSITIVE};
+enum PRECEDENCE {THIRD, SECOND, FIRST};
 
 typedef struct
 {
@@ -28,6 +31,10 @@ bool is_digit (void)
 	return (expression[I] >= '0' && expression[I] <= '9');
 }
 
+// checks if it is a digit or not and then sees if the deci-
+// mal point has been passed or not and run two different a-
+// lgorithms in each case. It also supports 'e' and 'E' and
+// recurses the function once if it's found.
 NUMBER parse_number (void) 
 {
 	NUMBER number = 0;
@@ -82,34 +89,36 @@ NUMBER parse_number (void)
 			break;
 		}
 	}
-	
+
 	return number;
 }
 
+// allocates Operation and assign respective values for each
+// respective operations
 Operation *parse_binary_operation (void) 
 {
-	Operation * x = (Operation *) malloc (sizeof (Operation));
+	Operation *x = (Operation *) malloc (sizeof (Operation));
 	switch (expression[I])
 	{
 		case '+':
 			x->is_binary = true;
 			x->oper_val = SUM;
-			x->precedence= SECOND;
+			x->precedence= FIRST;
 			break;
 		case '-':
 			x->is_binary = true;
 			x->oper_val = SUB;
-			x->precedence = SECOND;
+			x->precedence = FIRST;
 			break;
 		case '*':
 			x->is_binary = true;
 			x->oper_val = MUL;
-			x->precedence = FIRST;
+			x->precedence = SECOND;
 			break;
 		case '/':
 			x->is_binary = true;
 			x->oper_val = DIV;
-			x->precedence = FIRST; 
+			x->precedence = SECOND; 
 			break;
 		default:
 			free (x);
@@ -118,13 +127,33 @@ Operation *parse_binary_operation (void)
 			break;
 	}
 
+	++I;
 	return x;
+}
+
+void parse_unary_operation (void)
+{
+	Operation *x = (Operation *) malloc (sizeof (Operation));
+	
+    switch (expression[I])
+	{
+		case '+':
+            x->is_bianry = false;
+            x->perecedence = THIRD;
+            x->oper_val = POSITIVE;
+            break;
+        case '-':
+            x->is_bianry = false;
+            x->perecedence = THIRD;
+            x->oper_val = NEGATIVE;
+            break; 
+	}
 }
 
 int main (int argc, char *argv[]) {
 	expression = argv[1];
-	
-	printf ("%Lf\n", parse_number ());	
+
+	printf ("%d\n", (parse_binary_operation ()->oper_val));
 
 	return 0;
 }
