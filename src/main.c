@@ -6,6 +6,7 @@
 
 #define SYNTX_ERR   1
 #define MEM_FAIL    2
+
 #define NUMBER 	    long double
 #define LONGINT     uint64_t
 #define SMALINT     uint8_t
@@ -14,9 +15,11 @@ char *expression;
 LONGINT I = 0;
 
 // OPER_VAL defines what operations are being used and PRE-
-// CEDENCE defines when the operation is going to be execu- ted. prioritied are reversed.
+// CEDENCE defines when the operation is going to be execu- 
+// ted. priorities are reversed.
 enum OPER_VAL {SUM, SUB, MUL, DIV, NEGATIVE, POSITIVE};
-enum PRECEDENCE {THIRD, SECOND, FIRST};
+enum PRECEDENCE {FIRST, SECOND, THIRD};
+enum NODE_TYPE {UP, LEFT, RIGHT};
 
 typedef struct
 {
@@ -25,22 +28,15 @@ typedef struct
 	SMALINT precedence;
 } Operation;
 
-typedef struct
-{
-    NUMBER *first_num;
-    NUMBER *sec_num;
-} Operand;
-
 typedef struct Node
 {
-    struct Node *Upper_Node;
+    struct Node *Reffer_Node[3];
     bool is_operand;
     union
     {
         Operation *Operation_Node;
-        Operand *Operand_Node;
+        NUMBER *Operand_Node;
     } Branch;
-    struct Node *Lower_Node;
 } Node;
 
 bool is_digit (void) 
@@ -118,7 +114,7 @@ NUMBER *parse_number (void)
     NUMBER *number = (NUMBER *) malloc (sizeof (NUMBER));
     if (! number)
     {
-        fprintf (stderr, "parse_number: number:\nMemory allocation failed.");
+        fprintf (stderr, "parse_number: number:\nMemory allocation failed.\n");
         exit (MEM_FAIL);
     }
     *number = initial_parse_number ();
@@ -144,7 +140,7 @@ Operation *parse_binary_operation (void)
 	Operation *x = (Operation *) malloc (sizeof (Operation));
     if (! x)
     {
-        fprintf (stderr, "parse_binary_operation: x:\nMemory allocation failed.");
+        fprintf (stderr, "parse_binary_operation: x:\nMemory allocation failed.\n");
         exit (MEM_FAIL);
     }
 
@@ -192,7 +188,7 @@ Operation *parse_unary_operation (void)
 	Operation *x = (Operation *) malloc (sizeof (Operation)); 
     if (! x)
     {
-        fprintf (stderr, "parse_unary_operation: x:\nMemory allocation failed.");
+        fprintf (stderr, "parse_unary_operation: x:\nMemory allocation failed.\n");
         exit (MEM_FAIL);
     }
 	
@@ -225,18 +221,17 @@ Node *make_tree (void)
     	node = (Node *) malloc (sizeof (Node));
         if (! node)
         {
-            fprintf (stderr, "make_tree:node:\nMemory allocation failed.");
+            fprintf (stderr, "make_tree:node:\nMemory allocation failed.\n");
             exit (MEM_FAIL);
         }
 
     	switch (state)
     	{
-    	    case 0:                                            // initial state
+    	    case 0:
     	        if (is_digit ())
     	        {
     	            node->is_operand = true;
-    	            node->Branch.Operand_Node = (Operand *) malloc (sizeof (Operand));
-    	            node->Branch.Operand_Node->first_num = parse_number ();
+    	            node->Branch.Operand_Node = parse_number ();
 
     	            state = 1;
     	        }
@@ -253,28 +248,116 @@ Node *make_tree (void)
     	        }
     	        else
     	        {
-    	            fprintf (stderr, "make_tree: case 0:\n Syntax error. The string cannot be parsed.");
+    	            fprintf (stderr, "make_tree: case 0:\nSyntax error. The string cannot be parsed.\n");
     	            exit (SYNTX_ERR);
     	        }
 
     	        break;
-    	    case 1:                                            // in case of number
-    	        if (is_binary_operation ())
-    	        {
-    	            node->is_operand = false;
-    	            node->Branch.Operation_Node = parse_binary_operation ();
-                    // loop to adjust the binary operation :(
-    	            state = 3;
-    	        }
-    	        else
-    	        {
-    	            fprintf (stderr, "make_tree: case 1:\nSyntax Error. The string cannot be parssed.");
-    	            exit (SYNTX_ERR);
-    	        }
-    	        
-    	        break;
-    	}
-        
+            
+            case 1:
+                if (is_binary_operation ())
+                {
+                    node->is_operand = false;
+                    node->Branch.Operation_Node = parse_binary_operation ();
+
+                    while (true)
+                    {
+                        if (previous_node->is_operand)
+                        {
+                            if (previous_node->Reffer_Node[UP])
+                            {
+                                previous_node = previous_node->Reffer_Node[UP];
+                            }
+                            else
+                            {
+                                node->Reffer_Node[LEFT] = previous_node;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (previous_node->Branch.Operation_Node->precedence < node->Branch.Operation_Node->precedence)
+                            {
+                                if (previous_node->Reffer_Node[RIGHT])
+                                {
+                                    if (previous_node->Reffer_Node[RIGHT]->is_operand)
+                                    {
+                                        node->Reffer_Node[UP] = previous_node;
+                                        node->Reffer_Node[LEFT] = previous_node->Reffer_Node[RIGHT];
+                                        previous_node->Reffer_Node[RIGHT] = node;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (previous_node->Reffer_Node[Right]->Branch.Operation_Node->precedence < node->Branch.Operation_Node->precedence)
+                                        {
+                                            previous_node = previous_node->Reffer_Node[Right];
+                                        }
+                                        else
+                                        {
+                                            node->Reffer_Node[UP] = previous_node;
+                                            node->Reffer_Node[LEFT] = previous_node->Reffer_Node[RIGHT];
+                                            previous_node->Reffer_Node[RIGHT] = node;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    node->Reffer_Node[UP] = previous_node;
+                                    previous_node->Reffer_Node[RIGHT] = node;
+                                    break;
+                                }
+                            }
+                            else if (previous_node->Branch.Operation_Node->precedence > node->Branch.Operation_Node->precedence)
+                            {
+                                if (previous_node->Reffer_Node[UP])
+                                {
+                                    if (previous_node->Reffer_Node[UP]->Branch.Operand->precedence > node->Branch.Operation_Node->precedence)
+                                    {
+                                        previous_node = previous_node->Reffer_Node[UP];
+                                    }
+                                    else
+                                    {
+                                        node->Reffer_Node[UP] = previous_node->Reffer_Node[UP];
+                                        previous_node->Reffer_Node[UP] = node;
+                                        node->Reffer_Node[LEFT] = previous_node;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    previous_node->Reffer_Node[UP] = node;
+                                    node->Reffer_Node[LEFT] = previous_node;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                node->Reffer_Node[LEFT] = previous_node;
+                                if (previous_node->Reffer_Node[UP])
+                                {
+                                    node->Reffer_Node[UP] = previous_node->Reffer_Node[UP];
+                                }
+                                previous_node->Reffer_Node[UP] = node;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (expression[I] == ' ')
+                {
+                    ++I;
+                }
+                else
+                {
+                    fprintf (stderr, "make_tree: case 1:\nSyntax error. The string cannot be parsed.");
+                    exit (SYNTX_ERR);
+                }
+
+                break;
+        }
+
         previous_node = node;
     }
 
@@ -284,7 +367,7 @@ Node *make_tree (void)
 int main (int argc, char *argv[]) {
 	expression = argv[1];
 
-	printf ("%Lf\n", *(make_tree ()->Branch.Operand_Node->first_num));
+	make_tree ();
 
 	return 0;
 }
