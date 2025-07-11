@@ -4,8 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 
-#define SYNTX_ERR   1
-#define MEM_FAIL    2
+#define SYNTX_ERR       1
+#define MEM_FAIL        2
+#define UNCOND_IF_ERR   3
 
 #define NUMBER 	    long double
 #define LONGINT     uint64_t
@@ -17,8 +18,8 @@ LONGINT I = 0;
 // OPER_VAL defines what operations are being used and PRE-
 // CEDENCE defines when the operation is going to be execu- 
 // ted. priorities are reversed.
-enum OPER_VAL {SUM, SUB, MUL, DIV, NEGATIVE, POSITIVE};
-enum PRECEDENCE {FIRST, SECOND, LAST};
+enum OPER_VAL {SUM, SUB, MUL, DIV, POSITIVE, NEGATIVE};
+enum PRECEDENCE {FIRST, SECOND};
 enum NODE_TYPE {LEFT, RIGHT};
 
 typedef struct
@@ -292,22 +293,43 @@ Node *make_tree (void)
         }
     }
 
+    free (node);
     return top_node;
 }
 
 static inline void insert_binary_node (Node *node, Node **top_node)
 {
-    if ((*top_node)->is_operand)
+    Node *index_node = (*top_node), *previous_node = NULL;
+    
+    while (true)
     {
-        node->Reffer_Node[LEFT] = (*top_node);
+        if (index_node->is_operand || (! index_node->Branch.Operation_Node->is_binary) ||               \
+            node->Branch.Operation_Node->precedence <= index_node->Branch.Operation_Node->precedence    )
+        {
+            node->Reffer_Node[LEFT] = index_node;
+            if (previous_node != NULL)
+            {
+                previous_node->Reffer_Node[RIGHT] = node;
+            }
+            break;
+        }
+        else if (node->Branch.Operation_Node->precedence > index_node->Branch.Operation_Node->precedence)
+        {
+            previous_node = index_node;
+            index_node = index_node->Reffer_Node[RIGHT];
+        }
+        else
+        {
+            fprintf (stderr, "insert_binary_mode:\nUnspecified codition met.\n");
+            exit (UNCOND_IF_ERR);
+        }
+    }
+
+    if (index_node == *top_node)
+    {
         (*top_node) = node;
     }
-/*    
-    else
-    {
-        continue;
-    }
-*/
+    
 }
 
 static inline void insert_end_node (Node *node, Node **top_node)
@@ -320,11 +342,45 @@ static inline void insert_end_node (Node *node, Node **top_node)
     index_node->Reffer_Node[RIGHT] = node;
 }
 
+NUMBER evaluate_tree (Node *node)
+{
+    NUMBER result;
+
+    if (node->is_operand)
+    {
+        return *(node->Branch.Operand_Node);
+    } else
+    {
+        switch (node->Branch.Operation_Node->oper_val)
+        {
+            case 0:
+                return evaluate_tree (node->Reffer_Node[LEFT]) + evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+            case 1:
+                return evaluate_tree (node->Reffer_Node[LEFT]) - evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+            case 2:
+                return evaluate_tree (node->Reffer_Node[LEFT]) * evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+            case 3:
+                return evaluate_tree (node->Reffer_Node[LEFT]) / evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+            case 4:
+                return 1 * evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+            case 5:
+                return -1 * evaluate_tree (node->Reffer_Node[RIGHT]); 
+                break;
+        }
+    }
+
+}
+
 int main (int argc, char *argv[]) 
 {
 	expression = argv[1];
 
-	printf ("%Lf\n", *(make_tree ()->Reffer_Node[RIGHT]->Branch.Operand_Node));
+	printf ("%Lf\n", evaluate_tree(make_tree ()));
 
 	return 0;
 }
