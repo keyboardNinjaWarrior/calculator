@@ -18,8 +18,8 @@ LONGINT I = 0;
 // CEDENCE defines when the operation is going to be execu- 
 // ted. priorities are reversed.
 enum OPER_VAL {SUM, SUB, MUL, DIV, NEGATIVE, POSITIVE};
-enum PRECEDENCE {FIRST, SECOND, THIRD};
-enum NODE_TYPE {UP, LEFT, RIGHT};
+enum PRECEDENCE {FIRST, SECOND, LAST};
+enum NODE_TYPE {LEFT, RIGHT};
 
 typedef struct
 {
@@ -30,7 +30,7 @@ typedef struct
 
 typedef struct Node
 {
-    struct Node *Reffer_Node[3];
+    struct Node *Reffer_Node[2];
     bool is_operand;
     union
     {
@@ -38,6 +38,18 @@ typedef struct Node
         NUMBER *Operand_Node;
     } Branch;
 } Node;
+
+// functions
+bool is_digit (void); 
+NUMBER initial_parse_number (void);
+NUMBER *parse_number (void);
+bool is_binary_operation (void);
+Operation *parse_binary_operation (void); 
+bool is_unary_operation (void);
+Operation *parse_unary_operation (void);
+Node *make_tree (void);
+static inline void insert_binary_node (Node *node, Node **top_node);
+static inline void insert_end_node (Node *node, Node **top_node);
 
 bool is_digit (void) 
 {
@@ -196,12 +208,10 @@ Operation *parse_unary_operation (void)
 	{
 		case '+':
             x->is_binary = false;
-            x->precedence = THIRD;
             x->oper_val = POSITIVE;
             break;
         case '-':
             x->is_binary = false;
-            x->precedence = THIRD;
             x->oper_val = NEGATIVE;
             break; 
 	}
@@ -213,10 +223,9 @@ Operation *parse_unary_operation (void)
 Node *make_tree (void)
 {
     static SMALINT state = 0;
-    Node *node;
-    Node *previous_node;
+    Node *node, *top_node = NULL;
 
-    while (expression [I] != '\n')
+    while (expression [I] != '\0')
     {
     	node = (Node *) malloc (sizeof (Node));
         if (! node)
@@ -239,8 +248,6 @@ Node *make_tree (void)
     	        {
     	            node->is_operand = false;
     	            node->Branch.Operation_Node = parse_unary_operation ();
-
-    	            state = 2;
     	        }
     	        else if (expression [I] == ' ')
     	        {
@@ -252,6 +259,15 @@ Node *make_tree (void)
     	            exit (SYNTX_ERR);
     	        }
 
+                if (top_node == NULL)
+                {
+                    top_node = node;
+                }
+                else
+                {
+                    insert_end_node (node, &top_node);
+                }
+
     	        break;
             
             case 1:
@@ -259,115 +275,56 @@ Node *make_tree (void)
                 {
                     node->is_operand = false;
                     node->Branch.Operation_Node = parse_binary_operation ();
-
-                    while (true)
-                    {
-                        if (previous_node->is_operand)
-                        {
-                            if (previous_node->Reffer_Node[UP])
-                            {
-                                previous_node = previous_node->Reffer_Node[UP];
-                            }
-                            else
-                            {
-                                node->Reffer_Node[LEFT] = previous_node;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            if (previous_node->Branch.Operation_Node->precedence < node->Branch.Operation_Node->precedence)
-                            {
-                                if (previous_node->Reffer_Node[RIGHT])
-                                {
-                                    if (previous_node->Reffer_Node[RIGHT]->is_operand)
-                                    {
-                                        node->Reffer_Node[UP] = previous_node;
-                                        node->Reffer_Node[LEFT] = previous_node->Reffer_Node[RIGHT];
-                                        previous_node->Reffer_Node[RIGHT] = node;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        if (previous_node->Reffer_Node[Right]->Branch.Operation_Node->precedence < node->Branch.Operation_Node->precedence)
-                                        {
-                                            previous_node = previous_node->Reffer_Node[Right];
-                                        }
-                                        else
-                                        {
-                                            node->Reffer_Node[UP] = previous_node;
-                                            node->Reffer_Node[LEFT] = previous_node->Reffer_Node[RIGHT];
-                                            previous_node->Reffer_Node[RIGHT] = node;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    node->Reffer_Node[UP] = previous_node;
-                                    previous_node->Reffer_Node[RIGHT] = node;
-                                    break;
-                                }
-                            }
-                            else if (previous_node->Branch.Operation_Node->precedence > node->Branch.Operation_Node->precedence)
-                            {
-                                if (previous_node->Reffer_Node[UP])
-                                {
-                                    if (previous_node->Reffer_Node[UP]->Branch.Operand->precedence > node->Branch.Operation_Node->precedence)
-                                    {
-                                        previous_node = previous_node->Reffer_Node[UP];
-                                    }
-                                    else
-                                    {
-                                        node->Reffer_Node[UP] = previous_node->Reffer_Node[UP];
-                                        previous_node->Reffer_Node[UP] = node;
-                                        node->Reffer_Node[LEFT] = previous_node;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    previous_node->Reffer_Node[UP] = node;
-                                    node->Reffer_Node[LEFT] = previous_node;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                node->Reffer_Node[LEFT] = previous_node;
-                                if (previous_node->Reffer_Node[UP])
-                                {
-                                    node->Reffer_Node[UP] = previous_node->Reffer_Node[UP];
-                                }
-                                previous_node->Reffer_Node[UP] = node;
-                                break;
-                            }
-                        }
-                    }
+                    insert_binary_node (node, &top_node);
                 }
-                else if (expression[I] == ' ')
-                {
-                    ++I;
-                }
-                else
-                {
-                    fprintf (stderr, "make_tree: case 1:\nSyntax error. The string cannot be parsed.");
-                    exit (SYNTX_ERR);
-                }
-
+    	        else if (expression [I] == ' ')
+    	        {
+    	            ++I;
+    	        }
+    	        else
+    	        {
+    	            fprintf (stderr, "make_tree: case 0:\nSyntax error. The string cannot be parsed.\n");
+    	            exit (SYNTX_ERR);
+    	        }
+                    
+                state = 0;
                 break;
         }
-
-        previous_node = node;
     }
 
-    return node;
+    return top_node;
 }
 
-int main (int argc, char *argv[]) {
+static inline void insert_binary_node (Node *node, Node **top_node)
+{
+    if ((*top_node)->is_operand)
+    {
+        node->Reffer_Node[LEFT] = (*top_node);
+        (*top_node) = node;
+    }
+/*    
+    else
+    {
+        continue;
+    }
+*/
+}
+
+static inline void insert_end_node (Node *node, Node **top_node)
+{
+    Node *index_node = (*top_node);
+    while (index_node->Reffer_Node[RIGHT])
+    {
+        index_node = index_node->Reffer_Node[RIGHT];
+    }
+    index_node->Reffer_Node[RIGHT] = node;
+}
+
+int main (int argc, char *argv[]) 
+{
 	expression = argv[1];
 
-	make_tree ();
+	printf ("%Lf\n", *(make_tree ()->Reffer_Node[RIGHT]->Branch.Operand_Node));
 
 	return 0;
 }
