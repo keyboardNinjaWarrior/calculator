@@ -221,6 +221,13 @@ Operation *parse_unary_operation (void)
     return x;
 }
 
+
+// this functions works by switching states:
+//      1.  if it's the fist parse or parse after binary o-
+//          peration then parse unary operation or number
+//      2.  if it's a unary operation expect either and un-
+//          ary operation or a number
+//      3.  if it's a number then parse a binary operation.
 Node *make_tree (void)
 {
     static SMALINT state = 0;
@@ -303,6 +310,13 @@ static inline void insert_binary_node (Node *node, Node **top_node)
     
     while (true)
     {
+        // checks if either:
+        //      1. node is operand;
+        //      2. it's a unary operation; or
+        //      3. its precedence exceeds the precedence of
+        //         node
+        // and then inserts it. previous node is required 
+        // to attach it to the node and establish linkage
         if (index_node->is_operand || (! index_node->Branch.Operation_Node->is_binary) ||               \
             node->Branch.Operation_Node->precedence <= index_node->Branch.Operation_Node->precedence    )
         {
@@ -325,6 +339,7 @@ static inline void insert_binary_node (Node *node, Node **top_node)
         }
     }
 
+    // checks if the insertion was at front of the node
     if (index_node == *top_node)
     {
         (*top_node) = node;
