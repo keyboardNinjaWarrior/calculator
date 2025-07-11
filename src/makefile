@@ -1,4 +1,3 @@
-p =
 flags = -g -lm -O1 -o
 cc = gcc
 files = main.c
