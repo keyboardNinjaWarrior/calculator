@@ -260,6 +260,7 @@ Node *make_tree (void)
     	        else if (expression [I] == ' ')
     	        {
     	            ++I;
+                    break;
     	        }
     	        else
     	        {
@@ -284,10 +285,12 @@ Node *make_tree (void)
                     node->is_operand = false;
                     node->Branch.Operation_Node = parse_binary_operation ();
                     insert_binary_node (node, &top_node);
+                    state = 0;
                 }
     	        else if (expression [I] == ' ')
     	        {
     	            ++I;
+                    break;
     	        }
     	        else
     	        {
@@ -295,7 +298,6 @@ Node *make_tree (void)
     	            exit (SYNTX_ERR);
     	        }
                     
-                state = 0;
                 break;
         }
     }

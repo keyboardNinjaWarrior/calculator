@@ -1,7 +1,10 @@
-flags = -g -lm -O1 -o
+flags = -lm -o
 cc = gcc
 files = main.c
 exe = calc
 
-main:
-	$(cc) $(files) $(flags) $(exe)
+comp:
+	$(cc) $(files) -O1 $(flags) $(exe)
+
+debug:
+	$(cc) $(files) -g $(flags) $(exe)
