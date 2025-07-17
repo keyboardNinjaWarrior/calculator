@@ -370,22 +370,22 @@ NUMBER evaluate_tree (Node *node)
     {
         switch (node->Branch.Operation_Node->oper_val)
         {
-            case 0:
+            case SUM:
                 return evaluate_tree (node->Reffer_Node[LEFT]) + evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
-            case 1:
+            case SUB:
                 return evaluate_tree (node->Reffer_Node[LEFT]) - evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
-            case 2:
+            case MUL:
                 return evaluate_tree (node->Reffer_Node[LEFT]) * evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
-            case 3:
+            case DIV:
                 return evaluate_tree (node->Reffer_Node[LEFT]) / evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
-            case 4:
+            case POSITIVE:
                 return 1 * evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
-            case 5:
+            case NEGATIVE:
                 return -1 * evaluate_tree (node->Reffer_Node[RIGHT]); 
                 break;
         }
